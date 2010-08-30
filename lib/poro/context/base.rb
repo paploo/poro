@@ -2,10 +2,12 @@ module Poro
   module Context
     class Base
       
-      # Initizialize this context for the given class.
+      # Initizialize this context for the given class.  Yields self if a block
+      # is given.
       def initialize(klass)
         @klass = klass
         @data_store = nil # Subclasses should set this to something useful.
+        yield(self) if block_given?
       end
       
       # The class that this context instance services.

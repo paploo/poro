@@ -42,4 +42,13 @@ describe "Context" do
     obj.id.should == nil
   end
   
+  it 'should yield self at end of init' do
+    block_context = nil
+    context = @context_klass.new(Object) do |c|
+      c.klass.should == Object
+      block_context = c
+    end
+    context.should == block_context
+  end
+  
 end
