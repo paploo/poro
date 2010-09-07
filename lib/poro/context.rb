@@ -1,4 +1,14 @@
 module Poro
+  # The Context is the responsible delegate for directly interfacing with the
+  # persistence layer.  Each program class that needs persistence must have its
+  # own context instance that knows how to store/retrive only instances of that
+  # class.
+  #
+  # All instances respond to the methods declared here, and must conform to
+  # the rules described with each method.
+  #
+  # One normally uses a subclass of Context, and that subclass may have extra
+  # methods for setting options and configuring behavior.
   class Context
     
     # Initizialize this context for the given class.  Yields self if a block

@@ -1,4 +1,6 @@
 module Poro
+  # This class serves as both the base class for all context managers, and the
+  # root class for retriving the application's context manager.
   class ContextManager
       
     # Returns the context manager instance for the application.
@@ -22,9 +24,12 @@ module Poro
     
     # Fetches the context for a given class.
     #
-    # This is a basic implementation that calls the factory block each time.
-    # Subclasses with better behavior--but which call this method--should be
-    # used instead.
+    # This is a basic implementation that calls the factory block each and
+    # every time.  Usually, one uses a subclass that caches the values, but
+    # in some instaces it is necessary to have more complex behavior.
+    #
+    # Subclasses are expected to call this method instead of running the block
+    # directly.
     def fetch(klass)
       begin
         return @context_factory_block.call(klass)
