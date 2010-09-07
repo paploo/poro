@@ -11,6 +11,21 @@ describe "Context" do
     context.klass.should == Object
   end
   
+  it 'should have an immutable class' do
+    context = @context_klass.new(Object)
+    context.should_not respond_to(:klass=)
+  end
+  
+  it 'should return its data store' do
+    context = @context_klass.new(Object)
+    context.should respond_to(:data_store)
+  end
+   
+  it 'should have an immutable data store' do
+   context = @context_klass.new(Object)
+   context.should_not respond_to(:dat_store=)
+  end
+  
   it 'should return self from a save' do
     context = @context_klass.new(Object)
     obj = Object.new
