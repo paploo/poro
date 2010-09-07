@@ -24,7 +24,11 @@ module Poro
       # This is a basic implementation that calls the factory block each time.
       # Subclasses with better behavior should be used instead.
       def fetch(klass)
-        return @context_factory_block.call(klass)
+        begin
+          return @context_factory_block.call(klass)
+        rescue Exception => e
+          raise RuntimeError, "Error encountered during context manager fetch: #{e.class}: #{e.message.inspect}", e.backtrace
+        end
       end
     
     end
