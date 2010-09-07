@@ -5,6 +5,15 @@ engine.  Unlike most persistence engines, which require your persistent objects
 to be subclasses of a base model class, Poro aims to extend plain ol' Ruby
 objects to be stored in any persist way you choose (e.g. SQL, MongoDB, Memcache).
 
+= Installation
+
+Basic usage only requires the installation of this gem.  However to utilize
+any meaningful persistence data store, the underlying gems for the desired
+Context are needed.
+
+Also, see the rake tasks for meaningful tasks, using:
+  rake -T
+
 = Architecture
 
 A ContextManager instance is the starting point for using Poro.  The application
@@ -25,9 +34,12 @@ is normally most beneficial to use this to simplify management.
 
 If you have any questions, comments, concerns, patches, or bugs, you can contact
 me via the github repository at:
-    http://github.com/paploo/poro
+
+http://github.com/paploo/poro
+
 or directly at:
-    Jeffrey C. Reinecke <jeff@paploo.net>
+
+mailto:jeff@paploo.net
 
 = License
 
