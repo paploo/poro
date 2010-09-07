@@ -3,7 +3,7 @@ require "rake/rdoctask"
 
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = "rdoc"
-  rdoc.rdoc_files.add "lib"
+  rdoc.rdoc_files.add "lib/**/*.rb", "README.rdoc"
 end
 
 begin

@@ -1,14 +1,14 @@
 Poro
 (c)2010 Jeff Reinecke <jeff@paploo.net>
 
-===== Overview =====
+= Overview
 
 The name "Poro" is derived from "plain ol' Ruby object".  Poro is a persistence
 engine.  Unlike most persistence engines, which require your persistent objects
 to be subclasses of a base model class, Poro aims to extend plain ol' Ruby
 objects to be stored in any persist way you choose (e.g. SQL, MongoDB, Memcache).
 
-===== Architecture =====
+= Architecture
 
 A ContextManager instance is the starting point for using Poro.  The application
 may be configured to use any ContextManager, the managing instance of which is
@@ -24,7 +24,7 @@ for quick addition of the basic interface useful for a a Poro managed object.
 This does a minimal amount of work, and doesn't need to be included, however it
 is normally most beneficial to use this to simplify management.
 
-===== License =====
+= License
 
 This is released under a BSD license.
 
