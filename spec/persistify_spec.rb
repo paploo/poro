@@ -44,8 +44,8 @@ describe "Context" do
     @obj.save.should == "save called"
   end
   
-  it 'should pass-through delete' do
-    @obj.delete.should == "delete called"
+  it 'should pass-through remove' do
+    @obj.remove.should == "remove called"
   end
   
 end

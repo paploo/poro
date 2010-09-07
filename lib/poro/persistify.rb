@@ -44,8 +44,8 @@ module Poro
       end
       
       # Remove the given object from persistent storage.
-      def delete
-        return context.delete(self)
+      def remove
+        return context.remove(self)
       end
       
       # Return the context instance for this object.
