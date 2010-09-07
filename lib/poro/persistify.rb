@@ -12,7 +12,7 @@ module Poro
       end
     
       def context
-        return ContextManager::Base.instance.fetch(self)
+        return ContextManager.instance.fetch(self)
       end
     end
   

@@ -5,7 +5,7 @@ describe "Context" do
   before(:each) do
     @standin_context = :foo
     
-    Poro::ContextManager::Base.instance = Poro::ContextManager::Base.new do |klass|
+    Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
       @standin_context
     end
     

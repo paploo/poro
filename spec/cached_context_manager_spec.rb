@@ -4,7 +4,7 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 describe "CachedContextManager" do
   
   before(:all) do
-    @cached_context_manager_klass = Poro::ContextManager::Cached
+    @cached_context_manager_klass = Poro::ContextManagers::Cached
   end
   
   it 'should cache contexts' do

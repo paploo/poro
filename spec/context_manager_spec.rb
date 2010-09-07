@@ -3,7 +3,7 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 describe "ContextManager" do
   
   before(:all) do
-    @context_manager_klass = Poro::ContextManager::Base
+    @context_manager_klass = Poro::ContextManager
   end
   
   it 'should save the context instance' do

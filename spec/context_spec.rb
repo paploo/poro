@@ -3,7 +3,7 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 describe "Context" do
   
   before(:all) do
-    @context_klass = Poro::Context::Base
+    @context_klass = Poro::Context
   end
   
   it 'should know its class' do
