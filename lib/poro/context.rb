@@ -11,6 +11,12 @@ module Poro
   # methods for setting options and configuring behavior.
   class Context
     
+    # This error is thrown when a save fails.
+    class SaveError < RuntimeError; end
+    
+    # This error is thrown when a remove fails.
+    class RemoveError < RuntimeError; end
+    
     # Initizialize this context for the given class.  Yields self if a block
     # is given.
     def initialize(klass)
@@ -27,23 +33,33 @@ module Poro
     # there is tight coupling with the underlying persistence store!
     attr_reader :data_store
     
-    # Fetches the object from the store with the given identifier.
+    # Fetches the object from the store with the given id, or returns nil
+    # if there are none matching.
     def fetch(id)
       return nil
     end
     
-    # Saves the given object to the persistent store.  Returns self.
+    # Saves the given object to the persistent store.
     #
-    # This should assign an identifier to the object if save is successful.
+    # Returns self so that calls may be daisy chained.
+    #
+    # If the object has never been saved, it should be inserted and given
+    # an id.  If the object has been added before, the id is used to update
+    # the existing record.
+    #
+    # Raises a SaveError if save fails.
     def save(obj)
       obj.id = obj.object_id if obj.respond_to?(:id=)
       return obj
     end
     
-    # Remove the given object from the persisten store.  Returns self.
+    # Remove the given object from the persisten store.
     #
-    # This should remove the identifier from the object if the remove is
-    # successful.
+    # Returns self so that calls may be daisy chained.
+    #
+    # If the object is successfully removed, the id is set to nil.
+    #
+    # Raises a RemoveError is the remove fails.
     def remove(obj)
       obj.id = nil if obj.respond_to?(:id=)
       return obj
