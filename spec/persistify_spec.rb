@@ -3,18 +3,24 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 describe "Context" do
   
   before(:each) do
-    @standin_context = :foo
+    class PersistifyTestContext
+      def method_missing(method, *args, &block)
+        return "#{method} called"
+      end
+    end
+    
+    @standin_context = PersistifyTestContext.new
     
     Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
       @standin_context
     end
     
-    class Foo
+    class PersistifyFoo
       include Poro::Persistify
     end
     
-    @obj_klass = Foo
-    @obj = Foo.new
+    @obj_klass = PersistifyFoo
+    @obj = PersistifyFoo.new
   end
   
   it 'should include class methods' do
@@ -31,15 +37,15 @@ describe "Context" do
   end
   
   it 'should pass-through find' do
-    pending
+    @obj_klass.find(3).should == "find called"
   end
   
   it 'should pass-through save' do 
-    pending
+    @obj.save.should == "save called"
   end
   
   it 'should pass-through delete' do
-    pending
+    @obj.delete.should == "delete called"
   end
   
 end
