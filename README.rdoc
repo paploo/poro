@@ -1,17 +1,31 @@
 = Overview
 
-The name "Poro" is derived from "plain ol' Ruby object".  Poro is a persistence
-engine.  Unlike most persistence engines, which require your persistent objects
-to be subclasses of a base model class, Poro aims to extend plain ol' Ruby
-objects to be stored in any persist way you choose (e.g. SQL, MongoDB, Memcache).
+The name "Poro" is derived from "plain ol' Ruby object".  Poro is a simple and
+lightweight persistence engine.  Unlike most persistence engines, which require
+your persistent objects to be subclasses of a base model class, Poro aims to
+extend plain ol' Ruby objects to be stored in any persist way you choose
+(e.g. SQL, MongoDB, Memcache), and even mix and match different stores between
+objects.
+
+While the packages available for managing individual kinds of repositories focus
+on a large breadth of functionality, Poro aims to give the simplest, lightest
+weight, common interface possible for these storage methods.  Given the disparity
+in functionality available between different persistence stores
+(e.g. SLQ, key/value, documents), additional needs of the store are accomplished
+by working with the individual adapter package APIs themselves rather than
+through whatever inferior homogenized API Poro may try to provide.
 
 = Installation
 
-Basic usage only requires the installation of this gem.  However to utilize
-any meaningful persistence data store, the underlying gems for the desired
-Context are needed.
+Basic usage only requires the installation of the gem:
+  gem install poro
+However to utilize any meaningful persistence data store, the underlying gems
+for the desired persistence contexts are needed.  The documentation of the
+desired Context class' documentation should inform you of any necessary gems,
+though a useful error is thrown if you are missing a needed gem, so it is
+probably easier to just try.
 
-Also, see the rake tasks for meaningful tasks, using:
+It is also worthwhile checking rake for meaningful tasks, using:
   rake -T
 
 = Architecture
@@ -30,6 +44,30 @@ for quick addition of the basic interface useful for a a Poro managed object.
 This does a minimal amount of work, and doesn't need to be included, however it
 is normally most beneficial to use this to simplify management.
 
+= Getting Started
+
+The following sample code sets up a basic context manager for the application,
+using an in-memory only testing store (which is just a hash):
+
+  require 'poro'
+  
+  Poro::ContextManager.instance = Poro::ContextManagers::Cached.new do |klass|
+    return Poro::Contexts::Hashed.new(klass)
+  end
+  
+  class Foo
+    include Poro::Persistify
+  end
+  
+  f = Foo.new
+  puts f.id
+  f.save
+  puts f.id
+  g = Foo.fetch(f.id)
+  puts g.id
+  f.remove
+  puts f.id
+
 = Contact
 
 If you have any questions, comments, concerns, patches, or bugs, you can contact
@@ -37,13 +75,13 @@ me via the github repository at:
 
 http://github.com/paploo/poro
 
-or directly at:
+or directly via e-mail at:
 
 mailto:jeff@paploo.net
 
 = License
 
-The files contained in this repository are released under the commercial and
+The files contained in this repository are released under the commercially and
 GPL compatible "New BSD License", given below:
 
 == License Text
