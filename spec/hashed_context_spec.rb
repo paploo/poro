@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 
-describe "HashedContext" do
+describe "HashContext" do
   
   before(:each) do
     @obj = Object.new
@@ -9,7 +9,7 @@ describe "HashedContext" do
       attr_writer :id
     end
     
-    @context = Poro::Contexts::Hashed.new(@obj.class)
+    @context = Poro::Contexts::Hash.new(@obj.class)
   end
   
   it "should have a hash for a data store" do

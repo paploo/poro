@@ -51,7 +51,7 @@ using an in-memory only testing store (which is just a hash):
 
     require 'poro'
 
-    Poro::ContextManager.build_application_instance("Hashed")
+    Poro::ContextManager.build_application_instance("Hash")
 
     class Foo
       include Poro::Persistify
@@ -99,10 +99,10 @@ ContextManager initialization.  This block may return the fully configured
 Context instance for each persistified class.
 
 For example, the following code is equivalent to
-<code>Poro::ContextManager.build_application_instance("Hashed")</code>:
+<code>Poro::ContextManager.build_application_instance("Hash")</code>:
 
     Poro::ContextManager.instance = Poro::ContextManagers::Cached.new do |klass|
-      Poro::Contexts::Hashed.new(klass)
+      Poro::Contexts::Hash.new(klass)
     end
 
 Of course, one normally would have a more complex block, that may utilize a
