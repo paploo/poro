@@ -3,4 +3,4 @@ require 'poro/context'
 require 'poro/persistify'
 
 require 'poro/context_managers'
-require 'poro/context_managers'
+require 'poro/contexts'

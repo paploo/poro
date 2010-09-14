@@ -24,8 +24,8 @@ module Poro
     # See Persistify for more information.
     module ClassMethods
       # Find the object for the given id.
-      def find(id)
-        return context.find(id)
+      def fetch(id)
+        return context.fetch(id)
       end
       
       # Get the context instance for this class.

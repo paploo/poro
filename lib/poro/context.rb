@@ -1,4 +1,6 @@
 module Poro
+  # This is the abstract superclass of all Contexts.
+  #
   # The Context is the responsible delegate for directly interfacing with the
   # persistence layer.  Each program class that needs persistence must have its
   # own context instance that knows how to store/retrive only instances of that
@@ -18,10 +20,13 @@ module Poro
     class RemoveError < RuntimeError; end
     
     # Initizialize this context for the given class.  Yields self if a block
-    # is given.
-    def initialize(klass)
+    # is given, so that instances can be easily configured at instantiation.
+    #
+    # Only subclasses are expected to use this method (through calls to super),
+    # and they should set the data store for the instance as the second argument.
+    def initialize(klass, data_store=nil)
       @klass = klass
-      @data_store = nil # Subclasses should set this to something useful.
+      @data_store = data_store
       yield(self) if block_given?
     end
     
@@ -41,6 +46,8 @@ module Poro
     
     # Saves the given object to the persistent store.
     #
+    # Subclasses do not need to call super, but should follow the given rules:
+    #
     # Returns self so that calls may be daisy chained.
     #
     # If the object has never been saved, it should be inserted and given
@@ -49,11 +56,13 @@ module Poro
     #
     # Raises a SaveError if save fails.
     def save(obj)
-      obj.id = obj.object_id if obj.respond_to?(:id=)
+      obj.id = obj.object_id if obj.respond_to?(:id) && obj.id.nil? && obj.respond_to?(:id=)
       return obj
     end
     
     # Remove the given object from the persisten store.
+    #
+    # Subclasses do not need to call super, but should follow the given rules:
     #
     # Returns self so that calls may be daisy chained.
     #

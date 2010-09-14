@@ -26,13 +26,13 @@ describe "Context" do
    context.should_not respond_to(:dat_store=)
   end
   
-  it 'should return self from a save' do
+  it 'should return the saved object from a save' do
     context = @context_klass.new(Object)
     obj = Object.new
     context.save(obj).should == obj
   end
   
-  it 'should return self from a remove' do
+  it 'should return the removed object from a remove' do
     context = @context_klass.new(Object)
     obj = Object.new
     context.remove(obj).should == obj
@@ -57,7 +57,7 @@ describe "Context" do
     obj.id.should == nil
   end
   
-  it 'should yield self at end of init' do
+  it 'should yield self at end of initialization' do
     block_context = nil
     context = @context_klass.new(Object) do |c|
       c.klass.should == Object

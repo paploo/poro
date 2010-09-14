@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 
-describe "Context" do
+describe "Persistify" do
   
   before(:each) do
     class PersistifyTestContext
@@ -24,7 +24,7 @@ describe "Context" do
   end
   
   it 'should include class methods' do
-    @obj_klass.should respond_to(:find)
+    @obj_klass.should respond_to(:fetch)
   end
   
   it 'should include instance methods' do
@@ -37,7 +37,7 @@ describe "Context" do
   end
   
   it 'should pass-through find' do
-    @obj_klass.find(3).should == "find called"
+    @obj_klass.fetch(3).should == "fetch called"
   end
   
   it 'should pass-through save' do 
