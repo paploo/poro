@@ -18,7 +18,7 @@ through whatever inferior homogenized API Poro may try to provide.
 = Installation
 
 Basic usage only requires the installation of the gem:
-  gem install poro
+    gem install poro
 However to utilize any meaningful persistence data store, the underlying gems
 for the desired persistence contexts are needed.  The documentation of the
 desired Context class' documentation should inform you of any necessary gems,
@@ -26,7 +26,7 @@ though a useful error is thrown if you are missing a needed gem, so it is
 probably easier to just try.
 
 It is also worthwhile checking rake for meaningful tasks, using:
-  rake -T
+    rake -T
 
 = Architecture
 
@@ -49,24 +49,73 @@ is normally most beneficial to use this to simplify management.
 The following sample code sets up a basic context manager for the application,
 using an in-memory only testing store (which is just a hash):
 
-  require 'poro'
-  
-  Poro::ContextManager.instance = Poro::ContextManagers::Cached.new do |klass|
-    return Poro::Contexts::Hashed.new(klass)
-  end
-  
-  class Foo
-    include Poro::Persistify
-  end
-  
-  f = Foo.new
-  puts f.id
-  f.save
-  puts f.id
-  g = Foo.fetch(f.id)
-  puts g.id
-  f.remove
-  puts f.id
+    require 'poro'
+
+    Poro::ContextManager.build_application_instance("Hashed")
+
+    class Foo
+      include Poro::Persistify
+    end
+
+    f = Foo.new
+    puts "f doesn't have an ID yet: #{f.id.inspect}"
+    f.save
+    puts "f now has an ID: #{f.id.inspect}"
+    g = Foo.fetch(f.id)
+    puts "g is a fetch of f and has the same ID as f: #{g.id.inspect}"
+    f.remove
+    puts "f no longer has an ID: #{f.id.inspect}"
+    
+= Configuration
+
+Each Context has its own configuration parameters, based on how its data store
+works.  There are two ways in which to manage this configuration, depending on
+the needs of your application.
+
+== Inline
+
+Many users, thanks to some popular Ruby ORMs, are most comfortable with model
+class inline configuration.  Any class that has Poro::Persistify included into
+it, has the class method <tt>context</tt>.  This method returns the Context that
+manages the object.  Therefore, it is possible to configure the context in the
+model via use of this method.  Take this hypothetical example:
+
+    class Person
+      include Poro::Persistify
+      context.save_columns = [:first_name, :last_name]
+    end
+    
+Keep in mind that each Context has its own configuration methods that are suited
+for its backing.  While these seek to be as consistent as possible, it is
+important to look at the documentation for that Context to know how to configure
+it.
+
+== External
+
+The problem with inline configuration is that it does not abstract the
+persistence engine from the plain ol' ruby objects.  Poro provides a solution
+to this layering violation via a configuration block that is supplied during
+ContextManager initialization.  This block may return the fully configured
+Context instance for each persistified class.
+
+For example, the following code is equivalent to
+<code>Poro::ContextManager.build_application_instance("Hashed")</code>:
+
+    Poro::ContextManager.instance = Poro::ContextManagers::Cached.new do |klass|
+      Poro::Contexts::Hashed.new(klass)
+    end
+
+Of course, one normally would have a more complex block, that may utilize a
+context building factory of some kind.
+
+Additionally, the <tt>build_instance</tt> method can take a configuration
+block that works in a compatible way.
+
+= To Do
+
+The following features are primary features that are being evaluated:
+
+    * ContextFactory:: a class to simplify the configuration of Contexts inside of a configuration file.
 
 = Contact
 
