@@ -35,8 +35,8 @@ module Poro
     # block may be passed.  This block is yielded the class for the Context
     # instance to manage, but also the default context class passed in.
     def self.build_application_instance(context_klass, context_manager_klass=Poro::ContextManagers::Cached)
-      context_klass = Poro::Contexts.const_get(context_klass.to_s) unless context_klass.kind_of?(Class)
-      context_manager_klass = Poro::ContextManagers.const_get(context_manager_klass.to_s) unless context_manager_klass.kind_of?(Class)
+      context_klass = context_klass.kind_of?(Class) ? context_klass : Poro::Util::ModuleFinder.find(context_klass, Poro::Contexts, true)
+      context_manager_klass = context_manager_klass.kind_of?(Class) ? context_manager_klass : Poro::Util::ModuleFinder.find(context_manager_klass, Poro::ContextManagers, true)
       
       self.instance = context_manager_klass.new do |klass|
         if(block_given?)
