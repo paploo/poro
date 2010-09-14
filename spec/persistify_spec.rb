@@ -48,4 +48,16 @@ describe "Persistify" do
     @obj.remove.should == "remove called"
   end
   
+  it 'should add id methods' do
+    obj = @obj.dup
+    
+    obj.should respond_to(:id)
+    obj.should respond_to(:id=)
+    
+    obj.id.should be_nil
+    new_id = rand(10000)
+    obj.id = new_id
+    obj.id.should == new_id
+  end
+  
 end

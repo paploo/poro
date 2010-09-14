@@ -38,6 +38,21 @@ module Poro
     # See Persistify for more information.
     module InstanceMethods
       
+      # Returns the id of the object if it is in the store, otherwise returns nil.
+      #
+      # TODO: Make the name of the pk configurable.
+      def id
+        return @id
+      end
+      
+      # Sets the id of the object.  This is normally not done manually, but
+      # rather by a Context.
+      #
+      # TODO: Make the name of the pk configurable.
+      def id=(id)
+        @id = id
+      end
+      
       # Save the given object to persistent storage.
       def save
         return context.save(self)
