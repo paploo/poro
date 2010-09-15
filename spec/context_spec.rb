@@ -66,4 +66,22 @@ describe "Context" do
     context.should == block_context
   end
   
+  it 'should be able to fetch the context for a class' do
+    x = rand(1000)
+    Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
+      "#{klass}, #{x}"
+    end
+    
+    Poro::Context.fetch(Object).should == "Object, #{x}"
+  end
+  
+  it 'should be able to fetch the context for an object' do
+    x = rand(1000)
+    Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
+      "#{klass}, #{x}"
+    end
+    
+    Poro::Context.fetch(Object.new).should == "Object, #{x}"
+  end
+  
 end

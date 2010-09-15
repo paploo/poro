@@ -53,7 +53,8 @@ module Poro
       @context_factory_block = context_factory_block
     end
     
-    # Fetches the context for a given class.
+    # Fetches the context for a given class, or returns nil if the given object
+    # should not have a context.
     #
     # This is a basic implementation that calls the factory block each and
     # every time.  Usually, one uses a subclass that caches the values, but

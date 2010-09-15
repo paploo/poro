@@ -19,6 +19,17 @@ module Poro
     # This error is thrown when a remove fails.
     class RemoveError < RuntimeError; end
     
+    # Fetches the context for the given object or class from
+    # <tt>ContextManager.instance</tt>.
+    # Returns nil if no context is found.
+    def self.fetch(obj)
+      if( obj.kind_of?(Class) )
+        return ContextManager.instance.fetch(obj)
+      else
+        return ContextManager.instance.fetch(obj.class)
+      end
+    end
+    
     # Initizialize this context for the given class.  Yields self if a block
     # is given, so that instances can be easily configured at instantiation.
     #
