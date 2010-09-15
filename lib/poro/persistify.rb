@@ -30,7 +30,7 @@ module Poro
       
       # Get the context instance for this class.
       def context
-        return ContextManager.instance.fetch(self)
+        return Context.fetch(self)
       end
     end
     
@@ -61,7 +61,7 @@ module Poro
       
       # Return the context instance for this object.
       def context
-        return self.class.context
+        return Context.fetch(self)
       end
     end
     
