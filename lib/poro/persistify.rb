@@ -13,11 +13,22 @@ module Poro
   #
   # See Persistify::ClassMethods and Persistify::InstanceMethods for the methods
   # added by this mixin.
+  #
+  # Additionally, primary key methods are automatically added by this mixin using
+  # the context to decide what the method should be named.  These additions will
+  # not overwrite existing methods.
   module Persistify
     
     def self.included(mod) # :nodoc:
       mod.send(:extend, ClassMethods)
       mod.send(:include, InstanceMethods)
+      
+      # TODO: Declaring these here is easy and convenient, but makes it impossible to configure the pk right after including Persistify.
+      context = Context.fetch(mod)
+      pk = context.primary_key.to_s.gsub(/[^A-Za-z0-9]/, '_').strip
+      raise NameError, "Cannot create a primary key method from #{context.primary_key.inspect}" if pk.nil? || pk.empty?
+      mod.class_eval("def #{pk}; return @#{pk}; end")
+      mod.class_eval("def #{pk}=(value); @#{pk} = value; end")
     end
     
     # These methods are added as class methods when including Persistify.
@@ -37,17 +48,6 @@ module Poro
     # These methods are addes as instance methods when including Persistify.
     # See Persistify for more information.
     module InstanceMethods
-      
-      # Returns the id of the object if it is in the store, otherwise returns nil.
-      def id
-        return @id
-      end
-      
-      # Sets the id of the object.  This is normally not done manually, but
-      # rather by a Context.
-      def id=(id)
-        @id = id
-      end
       
       # Save the given object to persistent storage.
       def save

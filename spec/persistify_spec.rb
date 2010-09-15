@@ -7,6 +7,10 @@ describe "Persistify" do
       def method_missing(method, *args, &block)
         return "#{method} called"
       end
+      
+      def primary_key
+        return :id
+      end
     end
     
     @standin_context = PersistifyTestContext.new
@@ -48,7 +52,7 @@ describe "Persistify" do
     @obj.remove.should == "remove called"
   end
   
-  it 'should add id methods' do
+  it 'should add id methods by default' do
     obj = @obj.dup
     
     obj.should respond_to(:id)

@@ -60,6 +60,10 @@ module Poro
     
     # Set the method that returns the Context assigned primary key for the
     # managed object.
+    #
+    # Note that if you want the primary key's instance variable value to be
+    # purged from saved data, you must name the accessor the same as the instance
+    # method (like if using attr_reader and attr_writer).
     def primary_key=(pk)
       @primary_key = pk.to_sym
     end
@@ -100,12 +104,12 @@ module Poro
       return obj
     end
     
-    # Returns the primary key from the managed object..
+    # Returns the primary key value from the managed object..
     def primary_key_value(obj)
       return obj.send( primary_key() )
     end
     
-    # Sets the primary key on the managed object.
+    # Sets the primary key value on the managed object.
     def set_primary_key_value(obj, id)
       method = (primary_key().to_s + '=').to_sym
       obj.send(method, id)
