@@ -15,7 +15,7 @@ module Poro
     # DBRef, are re-fetched and re-saved every time the managing object is
     # fetched or saved.  Beware, then, that you can overwrite your own record.
     #
-    # BUG: I am doing context checking against hte object itself, and calling
+    # BUG: I am doing context checking against the object itself, and calling
     # save right on it.  I need to fetch the context directly!
     #
     # TODO: Instead of assuming 'id' as the primary key method, make it cusomizable.
