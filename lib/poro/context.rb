@@ -38,6 +38,7 @@ module Poro
     def initialize(klass, data_store=nil)
       @klass = klass
       @data_store = data_store
+      @primary_key = :id
       yield(self) if block_given?
     end
     
@@ -52,6 +53,16 @@ module Poro
     # Sets the raw data store backing this context.  Useful during initial
     # configuration and advanced usage, but can be dangerous.
     attr_writer :data_store
+    
+    # Returns the a symbol for the method that returns the Context assigned
+    # primary key for the managed object.  This defaults to <tt>:id</tt>
+    attr_reader :primary_key
+    
+    # Set the method that returns the Context assigned primary key for the
+    # managed object.
+    def primary_key=(pk)
+      @primary_key = pk.to_sym
+    end
     
     # Fetches the object from the store with the given id, or returns nil
     # if there are none matching.
@@ -87,6 +98,17 @@ module Poro
     def remove(obj)
       obj.id = nil if obj.respond_to?(:id=)
       return obj
+    end
+    
+    # Returns the primary key from the managed object..
+    def primary_key_value(obj)
+      return obj.send( primary_key() )
+    end
+    
+    # Sets the primary key on the managed object.
+    def set_primary_key_value(obj, id)
+      method = (primary_key().to_s + '=').to_sym
+      obj.send(method, id)
     end
     
     # Convert the data from the data store into the correct plain ol' ruby

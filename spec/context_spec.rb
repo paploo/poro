@@ -57,6 +57,23 @@ describe "Context" do
     obj.id.should == nil
   end
   
+  it 'should have a customizable id method' do
+    obj = Object.new
+    class << obj
+      attr_reader :pk
+      attr_writer :pk
+    end
+    
+    context = @context_klass.new(obj.class)
+    context.primary_key = :pk
+    
+    obj.pk.should be_nil
+    context.primary_key_value(obj).should == obj.pk
+    context.set_primary_key_value(obj, 12345)
+    obj.pk.should == 12345
+    context.primary_key_value(obj).should == obj.pk
+  end
+  
   it 'should yield self at end of initialization' do
     block_context = nil
     context = @context_klass.new(Object) do |c|
