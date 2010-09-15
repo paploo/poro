@@ -38,6 +38,10 @@ module Poro
     # there is tight coupling with the underlying persistence store!
     attr_reader :data_store
     
+    # Sets the raw data store backing this context.  Useful during initial
+    # configuration and advanced usage, but can be dangerous.
+    attr_writer :data_store
+    
     # Fetches the object from the store with the given id, or returns nil
     # if there are none matching.
     def fetch(id)
