@@ -24,16 +24,16 @@ module Poro
     # Returns nil if no context is found.
     def self.fetch(obj)
       if( obj.kind_of?(Class) )
-        return ContextFactory.instance.fetch(obj)
+        return self.factory.fetch(obj)
       else
-        return ContextFactory.instance.fetch(obj.class)
+        return self.factory.fetch(obj.class)
       end
     end
     
     # Returns true if the given class is configured to be represented by a
     # context.  This is done by including Poro::Persistify into the module.
     def self.for_class?(klass)
-      return klass.include?(Poro::Persistify)
+      return self.factory.context_for_class?(klass)
     end
     
     # A convenience method for further configuration of a context over what the

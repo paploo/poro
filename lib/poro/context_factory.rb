@@ -2,6 +2,9 @@ module Poro
   # This class serves as both the base class for all context factories, and the
   # root class for retriving the application's context factory.
   class ContextFactory
+    
+    # The base error type for a factory specific error.
+    class FactoryError < RuntimeError; end
       
     # Returns the context factory instance for the application.
     # Returns nil if none is set.
@@ -23,6 +26,10 @@ module Poro
       @context_cache = {}
     end
     
+    def context_for_class?(klass)
+      return klass.include?(Poro::Persistify)
+    end
+    
     # Fetches the context for a given class, or returns nil if the given object
     # should not have a context.
     #
@@ -34,6 +41,7 @@ module Poro
     # Subclasses are expected to call this method instead of running the factory
     # block directly.
     def fetch(klass)
+      raise FactoryError, "Cannot create a context for class #{klass.inspect}, as it has not been flagged for persistence.  Include Context::Persistify to fix." unless self.context_for_class?(klass)
       if( !@context_cache.has_key?(klass) )
         @context_cache[klass] = build(klass)
       end

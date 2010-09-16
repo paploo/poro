@@ -4,6 +4,12 @@ describe "ContextManager" do
   
   before(:all) do
     @context_manager_klass = Poro::ContextFactory
+    
+    @klass_one = Class.new(Object)
+    @klass_one.send(:include, Poro::Persistify)
+    
+    @klass_two = Class.new(String)
+    @klass_two.send(:include, Poro::Persistify)
   end
   
   it 'should save the context instance' do
@@ -24,15 +30,15 @@ describe "ContextManager" do
   
   it 'should run the context block on fetch' do
     manager = @context_manager_klass.new do |klass|
-      if( klass == String )
+      if( klass == @klass_one )
         :alpha
       else
         :beta
       end
     end
     
-    manager.fetch(String).should == :alpha
-    manager.fetch(Object).should == :beta
+    manager.fetch(@klass_one).should == :alpha
+    manager.fetch(@klass_two).should == :beta
   end
   
   it 'should cache the fetched result' do
@@ -42,12 +48,21 @@ describe "ContextManager" do
       o
     end
     
-    object_context = manager.fetch(Object)
-    string_context = manager.fetch(String)
+    context_one = manager.fetch(@klass_one)
+    context_two = manager.fetch(@klass_two)
     
-    manager.fetch(Object).should == object_context
-    manager.fetch(Object).should_not == string_context
-    manager.fetch(String).should == string_context
+    manager.fetch(@klass_one).should == context_one
+    manager.fetch(@klass_two).should_not == context_one
+    manager.fetch(@klass_two).should == context_two
+  end
+  
+  it 'should error when a class is not persistable' do
+    manager = @context_manager_klass.new do |klass|
+      Object.new
+    end
+    
+    lambda {manager.fetch(@klass_one)}.should_not raise_error
+    lambda {manager.fetch(Object)}.should raise_error(Poro::ContextFactory::FactoryError)
   end
   
 end

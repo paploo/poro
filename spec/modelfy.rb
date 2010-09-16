@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 
-describe "Persistify" do
+describe "Modelify" do
   
   before(:each) do
-    class PersistifyTestContext
+    class ModelifyTestContext
       def method_missing(method, *args, &block)
         return "#{method} called"
       end
@@ -13,18 +13,18 @@ describe "Persistify" do
       end
     end
     
-    @standin_context = PersistifyTestContext.new
+    @standin_context = ModelifyTestContext.new
     
     Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
       @standin_context
     end
     
-    class PersistifyFoo
-      include Poro::Persistify
+    class ModelifyFoo
+      include Poro::Modelify
     end
     
-    @obj_klass = PersistifyFoo
-    @obj = PersistifyFoo.new
+    @obj_klass = ModelifyFoo
+    @obj = ModelifyFoo.new
   end
   
   it 'should include class methods' do

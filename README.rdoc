@@ -7,6 +7,11 @@ extend plain ol' Ruby objects to be stored in any persist way you choose
 (e.g. SQL, MongoDB, Memcache), and even mix and match different stores between
 objects.
 
+Additionally, Poro takes a hands-off philosophy by default, only minimally
+disturbing an object it persists.  Of course, there is a mixin available to add
+model functionality to your object if you like, but how and when you do this
+is up to you.
+
 While the packages available for managing individual kinds of repositories focus
 on a large breadth of functionality, Poro aims to give the simplest, lightest
 weight, common interface possible for these storage methods.  Given the disparity
