@@ -1,0 +1,1 @@
+#require 'poro/context_factories/foo'

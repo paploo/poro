@@ -1,1 +1,0 @@
-require 'poro/context_managers/cached'

@@ -20,24 +20,50 @@ module Poro
     class RemoveError < RuntimeError; end
     
     # Fetches the context for the given object or class from
-    # <tt>ContextManager.instance</tt>.
+    # <tt>ContextFactory.instance</tt>.
     # Returns nil if no context is found.
     def self.fetch(obj)
       if( obj.kind_of?(Class) )
-        return ContextManager.instance.fetch(obj)
+        return self.factory.fetch(obj)
       else
-        return ContextManager.instance.fetch(obj.class)
+        return self.factory.fetch(obj.class)
       end
+    end
+    
+    # Returns true if the given class is configured to be represented by a
+    # context.  This is done by including Poro::Persistify into the module.
+    def self.for_class?(klass)
+      return self.factory.context_for_class?(klass)
+    end
+    
+    # A convenience method for further configuration of a context over what the
+    # factory does, via the passed block.
+    #
+    # This really just fetches (and creates, if necessary) the
+    # Context for the class, and then yields it to the block.  Returns the context.
+    def self.configure_for_klass(klass)
+      context = self.fetch(klass)
+      yield(context) if block_given?
+      return context
+    end
+    
+    # A convenience method for getting the application's ContextFactory instance. 
+    def self.factory
+      return ContextFactory.instance
+    end
+    
+    # A convenience methods for setting the application's ContextFactory instance.
+    def self.factory=(context_factory)
+      ContextFactory.instance = context_factory
     end
     
     # Initizialize this context for the given class.  Yields self if a block
     # is given, so that instances can be easily configured at instantiation.
     #
-    # Only subclasses are expected to use this method (through calls to super),
-    # and they should set the data store for the instance as the second argument.
-    def initialize(klass, data_store=nil)
+    # Subclasses are expected to use this method (through calls to super).
+    def initialize(klass)
       @klass = klass
-      @data_store = data_store
+      @data_store = nil unless defined?(@data_store)
       @primary_key = :id
       yield(self) if block_given?
     end

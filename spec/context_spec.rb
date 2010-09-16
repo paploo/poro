@@ -4,6 +4,9 @@ describe "Context" do
   
   before(:all) do
     @context_klass = Poro::Context
+    
+    @klass_one = Class.new(Object)
+    @klass_one.send(:include, Poro::Persistify)
   end
   
   it 'should know its class' do
@@ -85,20 +88,20 @@ describe "Context" do
   
   it 'should be able to fetch the context for a class' do
     x = rand(1000)
-    Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
+    Poro::ContextFactory.instance = Poro::ContextFactory.new do |klass|
       "#{klass}, #{x}"
     end
     
-    Poro::Context.fetch(Object).should == "Object, #{x}"
+    Poro::Context.fetch(@klass_one).should == "#{@klass_one}, #{x}"
   end
   
   it 'should be able to fetch the context for an object' do
     x = rand(1000)
-    Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
+    Poro::ContextFactory.instance = Poro::ContextFactory.new do |klass|
       "#{klass}, #{x}"
     end
     
-    Poro::Context.fetch(Object.new).should == "Object, #{x}"
+    Poro::Context.fetch(@klass_one.new).should == "#{@klass_one}, #{x}"
   end
   
 end

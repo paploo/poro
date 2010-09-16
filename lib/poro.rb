@@ -1,8 +1,14 @@
+# Require foundation.
 require 'poro/util'
 
-require 'poro/context_manager'
+# Require core classes and modules.
+require 'poro/context_factory'
 require 'poro/context'
 require 'poro/persistify'
 
-require 'poro/context_managers'
+# Require core expansions.
+require 'poro/context_factories'
 require 'poro/contexts'
+
+# Require modelfication modules.
+require 'poro/modelify'
