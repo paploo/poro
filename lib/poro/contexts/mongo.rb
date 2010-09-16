@@ -59,7 +59,7 @@ module Poro
       attr_writer :persistent_attributes_blacklist
       
       def fetch(id)
-        id = BSON::ObjectID.from_str(id.to_s) unless id.kind_of?(BSON::ObjectID) #TODO: Make it configurable as to if it tries to do this.
+        id = BSON::ObjectID.from_str(id.to_s) unless id.kind_of?(BSON::ObjectID) #TODO: Make the transform configurable, mongo doesn't require an ObjectID as the key.
         return data_store.find_one(id)
       end
       
@@ -67,7 +67,7 @@ module Poro
         data = convert_to_data(obj, :is_root_object => true)
         puts "DATA: #{data.inspect}"
         data_store.save(data)
-        obj.id = (data['_id'] || data[:_id]) # The pk generator uses a symbol, while everything else uses a string!
+        set_primary_key_value(obj, (data['_id'] || data[:_id])) # The pk generator uses a symbol, while everything else uses a string!
         return obj
       end
       
@@ -75,7 +75,7 @@ module Poro
         return obj
       end
       
-      def convert_to_plain_object(data)
+      def convert_to_plain_object(data, state_info={})
         return data
       end
       
@@ -83,16 +83,17 @@ module Poro
       #
       # Options:
       #   is_root_object:: if true, then will not treat as an embedded value.
-      def convert_to_data(obj, opts={})
+      def convert_to_data(obj, state_info={})
         puts "** convert_to_data(#{obj.inspect})"
-        data = route_encode(obj, opts)
+        data = route_encode(obj, state_info)
         puts "-- #{data.inspect}"
         return data
       end
       
       private
       
-      # The computed final list of attributes to save.
+      # The computed list of instance variables to save, taking into account
+      # white lists, black lists, and primary keys.
       def instance_variables_to_save(obj)
         white_list = if( self.persistent_attributes_whitelist.nil? )
           obj.instance_variables.map {|ivar| ivar.to_s[1..-1].to_sym}
@@ -100,74 +101,24 @@ module Poro
           self.persistent_attributes_whitelist
         end
         black_list = self.persistent_attributes_blacklist || []
-        return white_list - black_list - [:id] # Array difference is faster than Set difference.
+        # Note that this is significantly faster with arrays than sets.
+        # TODO: Only remove the primary key if it is not in the white list!
+        return white_list - black_list - [self.primary_key]
       end
       
       # If the object is a MongoDB compatible primitive, return true.
       def mongo_primitive?(obj)
-        return obj.kind_of?(Integer) || obj.kind_of?(Float) || obj.kind_of?(String) || obj.kind_of?(Time) || obj==true || obj==false || obj.nil? || obj.kind_of?(BSON::ObjectID) || obj.kind_of?(BSON::DBRef)
-      end
-      
-      def route_encode(obj, opts={})
-        if( obj.kind_of?(klass) && opts[:is_root_object] )
-          return encode_self_managed_object(obj)
-        elsif( obj.kind_of?(Hash) )
-          return encode_hash(obj)
-        elsif( obj.kind_of?(Array) )
-          return encode_array(obj)
-        elsif( obj.respond_to?(:context) && obj.context.kind_of?(self.class) )
-          return encode_mongo_managed_object(obj)
-        elsif( obj.respond_to?(:context) && !(obj.context.kind_of?(self.class)) )
-          return encode_foreign_managed_object(obj)
-        elsif( mongo_primitive?(obj) )
-          return obj
-        else
-          return encode_object(obj)
-        end
-      end
-      
-      def encode_hash(hash)
-        return hash.inject({}) do |hash,(k,v)|
-          hash[k] = self.convert_to_data(value)
-          hash
-        end
-      end
-      
-      def encode_array(array)
-        return array.map {|o| self.convert_to_data(o)}
-      end
-      
-      # Encode an object managed by this context.
-      def encode_self_managed_object(obj)
-        data = hashify_object(obj, instance_variables_to_save(obj))
-        data['_id'] = obj.id unless obj.id.nil?
-        data_store.pk_factory.create_pk(data) # This creates one only if it doesn't have it
-        data['_class_name'] = obj.class.name
-        return data
-      end
-      
-      # Encode an object managed by this kind of context.  It encodes as a
-      # DBRef if it is in the same database, and as a foreign managed object
-      # if not.
-      def encode_mongo_managed_object(obj)
-        obj.save
-        if( obj.context.data_store.db == data_store.db )
-          return BSON::DBRef.new(obj.context.data_store.name, obj.id)
-        else
-          return encode_foreign_managed_object(obj)
-        end
-      end
-      
-      # Encode an object managed by a completely different kind of context.
-      def encode_foreign_managed_object(obj)
-        obj.save
-        return {'id' => obj.id, '_class_name' => obj.class.name, 'context_class_name' => obj.context.class.name}
-      end
-      
-      # Encode an object not managed by a context.
-      def encode_object(obj)
-        ivars = obj.instance_variables.map {|ivar| ivar.to_s[1..-1].to_sym}
-        return hashify_object(obj, ivars)
+        return(
+          obj.kind_of?(Integer) ||
+          obj.kind_of?(Float) ||
+          obj.kind_of?(String) ||
+          obj.kind_of?(Time) ||
+          obj==true ||
+          obj==false ||
+          obj.nil? ||
+          obj.kind_of?(BSON::ObjectID) ||
+          obj.kind_of?(BSON::DBRef)
+        )
       end
       
       # Turns an object into a hash, using the given list of instance variables.
@@ -181,6 +132,111 @@ module Poro
         data['_class_name'] = obj.class.name
         return data
       end
+      
+      # Creates an object of a given class or class name, using the given hash of
+      # of attributes and encoded values.
+      def instantiate_object(klass_or_name, attributes)
+        # Translate class name.
+        klass = Util::ModuleFinder.find(klass_or_name)
+        
+        # Allocate the instance (use allocate and not new because we have all the state variables saved).
+        obj = klass.allocate
+        
+        # Iterate over attributes injecting.
+        attributes.each do |name, encoded_value|
+          ivar_sym = ('@' + name.to_s).to_sym
+          value = self.convert_to_plain_object(encoded_value)
+          obj.instance_variable_set(ivar_sym, value)
+        end
+        
+        
+        # Return the result.
+        return obj
+      end
+      
+      # =============================== ENCODING ===============================
+      
+      # Routes the encoding of an object to the appropriate method.
+      def route_encode(obj, state_info={})
+        if( obj.kind_of?(klass) && state_info[:is_root_object] )
+          return encode_self_managed_object(obj)
+        elsif( obj.kind_of?(Hash) )
+          return encode_hash(obj)
+        elsif( obj.kind_of?(Array) )
+          return encode_array(obj)
+        elsif( obj.kind_of?(Class) )
+          return encode_class(obj)
+        elsif( Context.managed_class?(obj.class) && Context.fetch(obj.class).kind_of?(self.class) )
+          return encode_mongo_managed_object(obj)
+        elsif( Context.managed_class?(obj.class))
+          return encode_foreign_managed_object(obj)
+        elsif( mongo_primitive?(obj) )
+          return obj
+        else
+          return encode_object(obj)
+        end
+      end
+      
+      # Recursively encode a hash's contents.
+      def encode_hash(hash)
+        return hash.inject({}) do |hash,(k,v)|
+          hash[k] = self.convert_to_data(value)
+          hash
+        end
+      end
+      
+      # Recursively encode an array's contents.
+      def encode_array(array)
+        return array.map {|o| self.convert_to_data(o)}
+      end
+      
+      # Encode a class.
+      def encode_class(klass)
+        return {'_class_name' => klass.class, 'name' => klass.name}
+      end
+      
+      # Encode an object not managed by a context.
+      def encode_object(obj)
+        ivars = obj.instance_variables.map {|ivar| ivar.to_s[1..-1].to_sym}
+        return hashify_object(obj, ivars)
+      end
+      
+      # Encode an object managed by this context.
+      def encode_self_managed_object(obj)
+        data = hashify_object(obj, instance_variables_to_save(obj))
+        data['_id'] = primary_key_value(obj) unless primary_key_value(obj).nil?
+        data_store.pk_factory.create_pk(data) # Use the underlying adapter's paradigm for lazily creating the pk.
+        data['_class_name'] = obj.class.name
+        return data
+      end
+      
+      # Encode an object managed by this kind of context.  It encodes as a
+      # DBRef if it is in the same database, and as a foreign managed object
+      # if not.
+      def encode_mongo_managed_object(obj)
+        # If in the same data store, we do a DBRef.  This is the usual case.
+        # But we do need to save it if it is stored in a different database!
+        obj_context = Context.fetch(obj)
+        if( obj_context.data_store.db == self.data_store.db )
+          obj_context.save(obj)
+          obj_id = obj_context.primary_key_value(obj)
+          obj_collection_name = obj_context.data_store.name
+          return BSON::DBRef.new(obj_collection_name, obj_id)
+        else
+          # Treat as if in a foreign database
+          return encode_foreign_managed_object(obj)
+        end
+      end
+      
+      # Encode an object managed by a completely different kind of context.
+      def encode_foreign_managed_object(obj)
+        obj_context = Context.fetch(obj)
+        obj_context.save(obj)
+        obj_id = obj_context.primary_key_value(obj)
+        return {'id' => obj_id, '_class_name' => obj.class.name, 'context_class_name' => obj_context.class.name}
+      end
+      
+      # =============================== DECODING ===============================
       
     end
   end

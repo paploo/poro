@@ -32,8 +32,8 @@ module Poro
     
     # Returns true if the given class is configured to be represented by a
     # context.  This is done by including Poro::Persistify into the module.
-    def self.for_class?(klass)
-      return self.factory.context_for_class?(klass)
+    def self.managed_class?(klass)
+      return self.factory.context_managed_class?(klass)
     end
     
     # A convenience method for further configuration of a context over what the
@@ -94,13 +94,26 @@ module Poro
       @primary_key = pk.to_sym
     end
     
+    # Returns the primary key value from the given object, using the primary
+    # key set for this context.
+    def primary_key_value(obj)
+      return obj.send( primary_key() )
+    end
+    
+    # Sets the primary key value on the managed object, using the primary
+    # key set for this context.
+    def set_primary_key_value(obj, id)
+      method = (primary_key().to_s + '=').to_sym
+      obj.send(method, id)
+    end
+    
     # Fetches the object from the store with the given id, or returns nil
     # if there are none matching.
     def fetch(id)
       return nil
     end
     
-    # Saves the given object to the persistent store.
+    # Saves the given object to the persistent store using this context.
     #
     # Subclasses do not need to call super, but should follow the given rules:
     #
@@ -116,7 +129,7 @@ module Poro
       return obj
     end
     
-    # Remove the given object from the persisten store.
+    # Remove the given object from the persisten store using this context.
     #
     # Subclasses do not need to call super, but should follow the given rules:
     #
@@ -130,26 +143,23 @@ module Poro
       return obj
     end
     
-    # Returns the primary key value from the managed object..
-    def primary_key_value(obj)
-      return obj.send( primary_key() )
-    end
-    
-    # Sets the primary key value on the managed object.
-    def set_primary_key_value(obj, id)
-      method = (primary_key().to_s + '=').to_sym
-      obj.send(method, id)
-    end
+    # private # TODO: Make the below methods private.
     
     # Convert the data from the data store into the correct plain ol' ruby
     # object for the class this context represents.
-    def convert_to_plain_object(data)
+    #
+    # The second argument is reserved for state information that the method
+    # may need to pass around, say if it is recursively converting elements.
+    def convert_to_plain_object(data, state_info={})
       return data
     end
     
     # Convert a plain ol' ruby object into the data store data format this
     # context represents.
-    def convert_to_data(obj)
+    #
+    # The second argument is reserved for state information that the method
+    # may need to pass around, say if it is recursively converting elements.
+    def convert_to_data(obj, state_info={})
       return obj
     end
     

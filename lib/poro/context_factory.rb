@@ -26,7 +26,7 @@ module Poro
       @context_cache = {}
     end
     
-    def context_for_class?(klass)
+    def context_managed_class?(klass)
       return klass.include?(Poro::Persistify)
     end
     
@@ -41,7 +41,7 @@ module Poro
     # Subclasses are expected to call this method instead of running the factory
     # block directly.
     def fetch(klass)
-      raise FactoryError, "Cannot create a context for class #{klass.inspect}, as it has not been flagged for persistence.  Include Context::Persistify to fix." unless self.context_for_class?(klass)
+      raise FactoryError, "Cannot create a context for class #{klass.inspect}, as it has not been flagged for persistence.  Include Context::Persistify to fix." unless self.context_managed_class?(klass)
       if( !@context_cache.has_key?(klass) )
         @context_cache[klass] = build(klass)
       end
