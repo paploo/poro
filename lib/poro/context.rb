@@ -20,13 +20,13 @@ module Poro
     class RemoveError < RuntimeError; end
     
     # Fetches the context for the given object or class from
-    # <tt>ContextManager.instance</tt>.
+    # <tt>ContextFactory.instance</tt>.
     # Returns nil if no context is found.
     def self.fetch(obj)
       if( obj.kind_of?(Class) )
-        return ContextManager.instance.fetch(obj)
+        return ContextFactory.instance.fetch(obj)
       else
-        return ContextManager.instance.fetch(obj.class)
+        return ContextFactory.instance.fetch(obj.class)
       end
     end
     
@@ -42,9 +42,19 @@ module Poro
     # This really just fetches (and creates, if necessary) the
     # Context for the class, and then yields it to the block.  Returns the context.
     def self.configure_for_klass(klass)
-      context = ContextManager.instance.fetch(obj)
+      context = self.fetch(klass)
       yield(context) if block_given?
       return context
+    end
+    
+    # A convenience method for getting the application's ContextFactory instance. 
+    def self.factory
+      return ContextFactory.instance
+    end
+    
+    # A convenience methods for setting the application's ContextFactory instance.
+    def self.factory=(context_factory)
+      ContextFactory.instance = context_factory
     end
     
     # Initizialize this context for the given class.  Yields self if a block

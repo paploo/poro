@@ -85,7 +85,7 @@ describe "Context" do
   
   it 'should be able to fetch the context for a class' do
     x = rand(1000)
-    Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
+    Poro::ContextFactory.instance = Poro::ContextFactory.new do |klass|
       "#{klass}, #{x}"
     end
     
@@ -94,7 +94,7 @@ describe "Context" do
   
   it 'should be able to fetch the context for an object' do
     x = rand(1000)
-    Poro::ContextManager.instance = Poro::ContextManager.new do |klass|
+    Poro::ContextFactory.instance = Poro::ContextFactory.new do |klass|
       "#{klass}, #{x}"
     end
     
