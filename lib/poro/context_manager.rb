@@ -16,12 +16,17 @@ module Poro
       @instance = instance
     end
     
+    # DEPRECATED: This method should be deprecated because it rarely does what
+    # one needs.  It would be better to have users know how to do a basic
+    # configuration so that they can decide how it should behave.
+    #
     # A shortcut method for building the application's context manager instance,
     # making it easier to get things up and running, but is not as flexible
     # as doing it yourself.
     #
     # The method creates a context manager for the application, and assigns the
-    # given Context to all classes with default arguments.
+    # given Context to all classes that have Poro:Persistify included in them,
+    # and initializes them with default arguments.
     #
     # The primary argument is the context class to use by default.  This must
     # be either the fully qualified class, or the string name of the class within
@@ -39,6 +44,7 @@ module Poro
       context_manager_klass = context_manager_klass.kind_of?(Class) ? context_manager_klass : Poro::Util::ModuleFinder.find(context_manager_klass, Poro::ContextManagers, true)
       
       self.instance = context_manager_klass.new do |klass|
+        return nil unless klass.include?(Poro::Persistify)
         if(block_given?)
           yield(klass, context_klass)
         else
