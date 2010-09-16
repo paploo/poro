@@ -15,12 +15,18 @@ module Poro
   # as well.
   module Persistify
     
-    def self.included(mod)
+    def self.included(mod) # :nodoc:
       mod.send(:extend, ClassMethods)
     end
     
     module ClassMethods
       
+      # A convenience method to more easily call
+      # <tt>Context.configure_for_class</tt> from within a class decleration.
+      #
+      # This was added to ease the transition from existing model based ORMs,
+      # and is up for debate.  It may be better to directly use
+      # <tt>Context.configure_for_class</tt>.
       def configure_context(&configuration_block)
         return Context.configure_for_class(self, &configuration_block)
       end

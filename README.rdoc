@@ -56,10 +56,11 @@ using an in-memory only testing store (which is just a hash):
 
     require 'poro'
 
-    Poro::ContextManager.build_application_instance("Hash")
+    Poro::ContextManager.build_application_instance("Hash") # This line is out-of-date and must be replaced with a working version!
 
     class Foo
       include Poro::Persistify
+      include Poro::Modelify
     end
 
     f = Foo.new
@@ -80,20 +81,21 @@ the needs of your application.
 == Inline
 
 Many users, thanks to some popular Ruby ORMs, are most comfortable with model
-class inline configuration.  Any class that has Poro::Persistify included into
-it, has the class method <tt>context</tt>.  This method returns the Context that
-manages the object.  Therefore, it is possible to configure the context in the
-model via use of this method.  Take this hypothetical example:
+class inline configuration.  Poro's philosophy is to be hands off with objects
+in your code, however there is a convenience method included into your object
+when you mark it for persistence that makes inline configuration of the context
+easy:
 
     class Person
       include Poro::Persistify
-      context.save_columns = [:first_name, :last_name]
+      configure_context do |context|
+        context.primary_key = :some_attribute
+      end
+      include Poro::Modelify # if you want model methods.
     end
     
-Keep in mind that each Context has its own configuration methods that are suited
-for its backing.  While these seek to be as consistent as possible, it is
-important to look at the documentation for that Context to know how to configure
-it.
+The above configure method is really just a shortcut to the
+<tt>configure_for_class</tt> method on Context, which can be called instead.
 
 == External
 
@@ -111,10 +113,13 @@ For example, the following code is equivalent to
     end
 
 Of course, one normally would have a more complex block, that may utilize a
-context building factory of some kind.
+context building factory of some kind, such as one that utilizes external
+files.
 
-Additionally, the <tt>build_instance</tt> method can take a configuration
-block that works in a compatible way.
+Of course, all Contexts are cached after creation, so the context configuration
+can be mutated by other methods (such as <tt>configure_for_class</tt> on Context),
+but developers are encouraged to choose one paradigm for their application and
+stick with it.
 
 = To Do
 
