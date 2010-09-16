@@ -4,18 +4,16 @@ require 'mongo'
 
 MongoDB = Mongo::Connection.new.db('poro-test')
 
-Poro::ContextManager.instance = Poro::ContextManagers::Cached.new do |klass|
-  return nil unless klass.include?(Poro::Persistify)
+Poro::Context.factory = Poro::ContextFactory.new do |klass|
   collection_name = klass.to_s.gsub(/([a-z0-9])([A-Z])/, '\1_\2').downcase
-  Poro::Contexts::Mongo.new(klass, MongoDB[collection_name])
+  context = Poro::Contexts::Mongo.new(klass)
+  context.data_store = MongoDB[collection_name]
+  context
 end
 
 class Person
-  # This could be done for inline configuration before persistifying, but
-  # how to tell the configuration block on the manager that this is a good idea.
-  #Poro::Context.configure_for_class(Person) do
-  #end
   include Poro::Persistify
+  include Poro::Modelify
   
   def initialize(first_name, last_name)
     @first_name = first_name
