@@ -30,14 +30,30 @@ module Poro
       end
     end
     
+    # Returns true if the given class is configured to be represented by a
+    # context.  This is done by including Poro::Persistify into the module.
+    def self.for_class?(klass)
+      return klass.include?(Poro::Persistify)
+    end
+    
+    # A convenience method for further configuration of a context over what the
+    # factory does, via the passed block.
+    #
+    # This really just fetches (and creates, if necessary) the
+    # Context for the class, and then yields it to the block.  Returns the context.
+    def self.configure_for_klass(klass)
+      context = ContextManager.instance.fetch(obj)
+      yield(context) if block_given?
+      return context
+    end
+    
     # Initizialize this context for the given class.  Yields self if a block
     # is given, so that instances can be easily configured at instantiation.
     #
-    # Only subclasses are expected to use this method (through calls to super),
-    # and they should set the data store for the instance as the second argument.
-    def initialize(klass, data_store=nil)
+    # Subclasses are expected to use this method (through calls to super).
+    def initialize(klass)
       @klass = klass
-      @data_store = data_store
+      @data_store = nil unless defined?(@data_store)
       @primary_key = :id
       yield(self) if block_given?
     end
