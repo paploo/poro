@@ -7,7 +7,8 @@ module Poro
     class Hash < Context
       
       def initialize(klass)
-        super(klass, {})
+        self.data_store = {}
+        super(klass)
       end
       
       def fetch(id)
