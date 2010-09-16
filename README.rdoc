@@ -25,6 +25,8 @@ desired Context class' documentation should inform you of any necessary gems,
 though a useful error is thrown if you are missing a needed gem, so it is
 probably easier to just try.
 
+If you wish to run the gem's unit tests, you should also install <tt>rspec</tt>.
+
 It is also worthwhile checking rake for meaningful tasks, using:
     rake -T
 
