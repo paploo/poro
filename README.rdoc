@@ -57,14 +57,14 @@ The following sample code sets up a basic context manager for the application,
 using an in-memory only testing store (which is just a hash):
 
     require 'poro'
-
-    Poro::ContextManager.build_application_instance("Hash") # This line is out-of-date and must be replaced with a working version!
-
+    
+    Poro::Context.factory = Poro::ContextFactories::SingleStore.instantiate(:hash)
+    
     class Foo
       include Poro::Persistify
       include Poro::Modelify
     end
-
+    
     f = Foo.new
     puts "f doesn't have an ID yet: #{f.id.inspect}"
     f.save
@@ -107,27 +107,22 @@ to this layering violation via a configuration block that is supplied during
 ContextManager initialization.  This block may return the fully configured
 Context instance for each persistified class.
 
-For example, the following code is equivalent to
-<code>Poro::ContextManager.build_application_instance("Hash")</code>:
+For example, the following generic code has the same result as
+<code>Poro::Context.factory = Poro::ContextFactories::SingleStore.instantiate(:hash)</code>,
+which uses a specialized factory:
 
-    Poro::ContextManager.instance = Poro::ContextManagers::Cached.new do |klass|
-      Poro::Contexts::Hash.new(klass)
+    Poro::Context.factory = Poro::ContextManager.new do |klass|
+      Poro::Contexts::HashContext.new(klass)
     end
 
-Of course, one normally would have a more complex block, that may utilize a
-context building factory of some kind, such as one that utilizes external
-files.
+Of course, one normally would have a more complex block and/or utilize one of
+the specialized factories, but this example shows just how simple a factory
+nees to be.
 
-Of course, all Contexts are cached after creation, so the context configuration
+Note that all Contexts are cached after creation, so the context configuration
 can be mutated by other methods (such as <tt>configure_for_class</tt> on Context),
 but developers are encouraged to choose one paradigm for their application and
 stick with it.
-
-= To Do
-
-The following features are primary features that are being evaluated:
-
-    * ContextFactory:: a class to simplify the configuration of Contexts inside of a configuration file.
 
 = Contact
 

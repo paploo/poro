@@ -16,7 +16,7 @@ module Poro
   # See Modelify::ClassMethods and Modelify::InstanceMethods for the methods
   # added by this mixin.
   #
-  # = TODO
+  # = TODO: Piecewise Modelfication
   #
   # Modelfication should be done in a piece-meal way, so that we can layer
   # in features such as pk accesor generation, basic model methods, find methods,

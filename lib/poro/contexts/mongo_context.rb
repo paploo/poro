@@ -8,25 +8,18 @@ module Poro
     #
     # WARNING: At this time, only objects that follow nice tree hierarchies can
     # be encoded.  Cyclical loops cannot be auto-encoded, and need embedded
-    # objects to be managed with the parent pointers blacklisted.  This is a
-    # TODO to fix.
+    # objects to be managed with the parent pointers blacklisted.
     #
     # WARNING: Embedded objects of the same kind--which are referenced via a
     # DBRef, are re-fetched and re-saved every time the managing object is
-    # fetched or saved.  Beware, then, that you can overwrite your own record.
-    #
-    # BUG: I am doing context checking against the object itself, and calling
-    # save right on it.  I need to fetch the context directly!
-    #
-    # TODO: Instead of assuming 'id' as the primary key method, make it cusomizable.
-    # This should be a context level method and persistify should honor it.
+    # fetched or saved.
     #
     # This adapter recursively encodes the object according to the following
     # rules for each instance variable's value:
-    #   1. If the object can be saved as a primitive, save it that way.
-    #   2. If the object is managed by a Mongo context, save and encode it as a DBRef.
-    #   3. If the object is managed by another context, save and store the class and id in a hash.
-    #   4. Otherwise, encode all instance variables and the class, in a Hash.
+    # 1. If the object can be saved as a primitive, save it that way.
+    # 2. If the object is managed by a Mongo context, save and encode it as a DBRef.
+    # 3. If the object is managed by another context, save and store the class and id in a hash.
+    # 4. Otherwise, encode all instance variables and the class, in a Hash.
     #
     # For Mongo represented objects, the instance variables that are encoded
     # can be controlled via any combination of the <tt>save_attributes</tt> and
@@ -340,17 +333,13 @@ module Poro
       def decode_db_ref(dbref)
         context = @@collection_map[dbref.namespace.to_s]
         if( context )
-          puts 'has-context'
           value = context.data_store.db.dereference(dbref)
-          puts value.inspect
           return context.convert_to_plain_object(value, :embedded => false) # We want it to work like a standalone object, so don't treat as embedded.
         elsif self.data_store.db.collection_names.include?(dbref.namespace.to_s)
-          puts 'no-context, in-db'
           value = context.data_store.db.dereference(dbref)
           value['_namespace'] = dbref.namespace.to_s
           return value
         else
-          puts 'no-context, no-db'
           return dbref
         end
       end

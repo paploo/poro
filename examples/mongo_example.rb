@@ -6,12 +6,14 @@ require 'mongo'
 MongoDB = Mongo::Connection.new.db('poro-test')
 puts MongoDB.collection_names.inspect
 
-Poro::Context.factory = Poro::ContextFactory.new do |klass|
-  collection_name = klass.to_s.gsub(/([a-z0-9])([A-Z])/, '\1_\2').downcase
-  context = Poro::Contexts::MongoContext.new(klass)
-  context.data_store = MongoDB[collection_name]
-  context
-end
+Poro::Context.factory = Poro::ContextFactories::SingleStore.instantiate(:mongo, :connection => MongoDB)
+
+# Poro::Context.factory = Poro::ContextFactory.new do |klass|
+#   collection_name = klass.to_s.gsub(/([a-z0-9])([A-Z])/, '\1_\2').downcase
+#   context = Poro::Contexts::MongoContext.new(klass)
+#   context.data_store = MongoDB[collection_name]
+#   context
+# end
 
 class Person
   include Poro::Persistify

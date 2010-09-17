@@ -1,1 +1,1 @@
-#require 'poro/context_factories/foo_context_factory'
+require 'poro/context_factories/single_store'
