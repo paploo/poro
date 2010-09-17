@@ -14,4 +14,15 @@ describe 'MongoContext' do
     fail "No tests written"
   end
   
+  describe 'Decoding' do
+  
+    it 'should not need class name on root object' do
+      pending
+    end
+  
+  end
+  
+  describe 'Encoding' do
+  end
+  
 end

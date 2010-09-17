@@ -41,6 +41,7 @@ class PG
   
 end
 
+
 # Make one with the given ID and save it.  This will either insert or update.
 jeff_id = BSON::ObjectId('4c913ec9b5915f5ef5000123')
 mock_jeff = Person.new('Jeff', 'Mock')
@@ -63,3 +64,12 @@ else
 end
 
 puts "$$ ruben_monkey = " + ruben_monkey.inspect
+
+
+# Insert one with no class_name and then fetch.
+p_id = BSON::ObjectId('4c913ec9b5915f5ef5000555')
+p_data = {'_id' => p_id, 'first_name' => 'Boo', 'last_name' => nil}
+MongoDB[:people].save(p_data)
+
+p = Person.fetch(p_id)
+puts "$$ p = " + p.inspect

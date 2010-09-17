@@ -63,7 +63,7 @@ module Poro
       attr_writer :persistent_attributes_blacklist
       
       def fetch(id)
-        id = BSON::ObjectID.from_str(id.to_s) unless id.kind_of?(BSON::ObjectID) #TODO: Make the transform configurable, mongo doesn't require an ObjectID as the key.
+        id = BSON::ObjectId.from_str(id.to_s) unless id.kind_of?(BSON::ObjectId) #TODO: Make the transform configurable, mongo doesn't require an ObjectId as the key.
         data = data_store.find_one(id)
         return convert_to_plain_object(data)
       end
@@ -80,22 +80,14 @@ module Poro
       end
       
       def convert_to_plain_object(data, state_info={})
-        #@decode_depth ||= 0
-        #@decode_depth += 1
-        #puts "**[#{@decode_depth}] convert_to_plain_object(#{data.inspect})"
+        # If it is a root record, and it has no class name, assume this context's class name.
+        data['_class_name'] = self.klass if( data && data.kind_of?(Hash) && !state_info[:embedded] )
         obj = route_decode(data, state_info)
-        #puts "--[#{@decode_depth}] #{obj.inspect}"
-        #@decode_depth -= 1
         return obj
       end
       
       def convert_to_data(obj, state_info={})
-        #@encode_depth ||= 0
-        #@encode_depth += 1
-        #puts "**[#{@encode_depth}] convert_to_data(#{obj.inspect})"
         data = route_encode(obj, state_info)
-        #puts "--[#{@encode_depth}] #{data.inspect}"
-        #@encode_depth -= 1
         return data
       end
       
@@ -126,7 +118,7 @@ module Poro
           obj==true ||
           obj==false ||
           obj.nil? ||
-          obj.kind_of?(BSON::ObjectID) ||
+          obj.kind_of?(BSON::ObjectId) ||
           obj.kind_of?(BSON::DBRef)
         )
       end
