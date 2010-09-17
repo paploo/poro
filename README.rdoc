@@ -171,3 +171,7 @@ GPL compatible "New BSD License", given below:
     ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Poro::Util::Inflector is adapted from ActiveSupport, and its source is
+redistributed under the MIT license it was originally distributed under.  The
+text of this copyright notice is supplied in <tt>poro/util/inflector.rb</tt>.
