@@ -44,7 +44,7 @@ jeff_id = BSON::ObjectId('4c913ec9b5915f5ef5000123')
 mock_jeff = Person.new('Jeff', 'Mock')
 mock_jeff.id = jeff_id
 mock_jeff.save
-puts "@@ mock_jeff = " + mock_jeff.inspect
+puts "$$ mock_jeff = " + mock_jeff.inspect
 
 puts ''
 
@@ -60,6 +60,4 @@ else
   ruben_monkey = Person.context.convert_to_plain_object(ruben_monkey_data)
 end
 
-puts "@@ ruben_monkey = " + ruben_monkey.inspect
-
-puts [__FILE__, __LINE__, BSON::OrderedHash.new.kind_of?(Hash)].inspect
+puts "$$ ruben_monkey = " + ruben_monkey.inspect
