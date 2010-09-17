@@ -63,8 +63,8 @@ module Poro
     # Subclasses are expected to use this method (through calls to super).
     def initialize(klass)
       @klass = klass
-      @data_store = nil unless defined?(@data_store)
-      @primary_key = :id
+      self.data_store = nil unless defined?(@data_store)
+      self.primary_key = :id
       yield(self) if block_given?
     end
     
@@ -143,13 +143,18 @@ module Poro
       return obj
     end
     
-    # private # TODO: Make the below methods private.
-    
     # Convert the data from the data store into the correct plain ol' ruby
     # object for the class this context represents.
     #
+    # For non-embedded persistent stores, only records of the type for this
+    # context must be handled.  However, for embedded stores--or more
+    # complex embedded handling on non-embedded stores--more compex
+    # rules may be necessary, handling all sorts of data types.
+    #
     # The second argument is reserved for state information that the method
     # may need to pass around, say if it is recursively converting elements.
+    # Any root object returned from a "find" in the data store needs to be
+    # able to be converted
     def convert_to_plain_object(data, state_info={})
       return data
     end
@@ -157,8 +162,15 @@ module Poro
     # Convert a plain ol' ruby object into the data store data format this
     # context represents.
     #
+    # For non-embedded persistent stores, only records of the type for this
+    # context must be handled.  However, for embedded stores--or more
+    # complex embedded handling on non-embedded stores--more compex
+    # rules may be necessary, handling all sorts of data types.
+    #
     # The second argument is reserved for state information that the method
     # may need to pass around, say if it is recursively converting elements.
+    # Any root object returned from a "find" in the data store needs to be
+    # able to be converted
     def convert_to_data(obj, state_info={})
       return obj
     end

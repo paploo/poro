@@ -1,4 +1,4 @@
-require 'poro/contexts/hash'
-require 'poro/contexts/mongo'
-#require 'poro/contexts/sequel'
-#require 'poro/contexts/memcache'
+require 'poro/contexts/hash_context'
+require 'poro/contexts/mongo_context'
+#require 'poro/contexts/sequel_context'
+#require 'poro/contexts/memcache_context'

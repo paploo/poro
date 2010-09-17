@@ -4,7 +4,7 @@ module Poro
     # store that uses a normal Ruby Hash.  The intended use for this context is
     # for building and testing code before a more realistic persistence backing
     # is available for your application.
-    class Hash < Context
+    class HashContext < Context
       
       def initialize(klass)
         self.data_store = {}

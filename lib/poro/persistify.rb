@@ -17,6 +17,11 @@ module Poro
     
     def self.included(mod) # :nodoc:
       mod.send(:extend, ClassMethods)
+      
+      # Force the initialization of the context now, as one would expect it to
+      # exist after including this module.  This also makes sure that on load
+      # all the contexts that are going to exist are known for introspection.
+      Context.fetch(mod)
     end
     
     module ClassMethods

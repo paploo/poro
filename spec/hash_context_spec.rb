@@ -9,7 +9,7 @@ describe "HashContext" do
       attr_writer :id
     end
     
-    @context = Poro::Contexts::Hash.new(@obj.class)
+    @context = Poro::Contexts::HashContext.new(@obj.class)
   end
   
   it "should have a hash for a data store" do
