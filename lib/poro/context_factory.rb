@@ -8,12 +8,16 @@ module Poro
       
     # Returns the context factory instance for the application.
     # Returns nil if none is set.
+    #
+    # One normally gets this via Context.factory, but it doesn't make a difference.
     def self.instance
       raise RuntimeError, "No context factory configured for this application." if @instance.nil?
       return @instance
     end
     
     # Sets the context factory instance for the application.
+    #
+    # One normally sets this via Context.factory, but it doesn't make a difference.
     def self.instance=(instance)
       raise TypeError, "Cannot set an object of class #{instance.class} as the application's context factory." unless instance.kind_of?(self) || instance.nil?
       @instance = instance

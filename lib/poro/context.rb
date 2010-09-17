@@ -47,12 +47,12 @@ module Poro
       return context
     end
     
-    # A convenience method for getting the application's ContextFactory instance. 
+    # Returns the application's ContextFactory instance.
     def self.factory
       return ContextFactory.instance
     end
     
-    # A convenience methods for setting the application's ContextFactory instance.
+    # Sets the application's ContextFactory instance.
     def self.factory=(context_factory)
       ContextFactory.instance = context_factory
     end
@@ -111,6 +111,92 @@ module Poro
     # if there are none matching.
     def fetch(id)
       return nil
+    end
+    
+    # Fetches records according to the parameters given in opts.
+    #
+    # Contexts attempt to implement this method as uniformily as possible,
+    # however some features only exist in some backings and may or may not be
+    # portable.
+    #
+    # WARNING: For performance, some Contexts may not check that the passed
+    # options are syntactically correct before passing off to their data store.
+    # This could result in the inadvertent support of some underlying functionality
+    # that may go away in a refactor.  Please make sure you only use this method
+    # in the way it is documented for maximal future compatibility.
+    #
+    # Note that if you wish to work more directly with the data store's find
+    # methods, one should see <ttdata_store_find_all</tt> and
+    # <tt>data_store_find_first</tt>.
+    #
+    # The first argument must be one of the following:
+    # * An ID
+    # * An array of IDs
+    # * :all or :many
+    # * :first or :one
+    #
+    # The options are as follows:
+    # [:conditions] A hash of key-value pairs that will be matched against.  They
+    #               are joined by an "and".  Note that in contexts that support embedded
+    #               contexts, the keys may be dot separated keypaths.
+    # [:order]      The name of the key to order by in ascending order, an array of
+    #               keys to order by in ascending order, an array of arrays, or a hash, where
+    #               the first value is the key, and the second value is either :asc or :desc.
+    # [:limit]      Either the limit of the number of records to get, an array of the
+    #               limit and offset, or a hash with keys :limit and/or :offset.
+    #
+    # Subclasses rarely need to override this method, as it distributes its call
+    # to one of the helper find methods.
+    def find(arg, opts={})
+      if(arg == :all || arg == :many)
+        return find_all(opts)
+      elsif( args == :first || arg == :one)
+        return find_first(opts)
+      elsif( arg.respond_to?(:map) )
+        return arg.map {|id| fetch(id)}
+      else
+        return fetch(id)
+      end
+    end
+    
+    # Returns an array of all the records that match the following options.
+    # See <tt>find</tt> for more help.
+    def find_all(opts)
+      return []
+    end
+    
+    # Returns the first record that matches the following options.
+    # See <tt>find</tt> for more help.
+    def find_first(opts)
+      return nil
+    end
+    
+    # Calls the relevant finder method on the underlying data store, and
+    # converts all the results to plain objects.
+    #
+    # Use of this method is discouraged as being non-portable, but sometimes
+    # there is no alternative but to get right down to the underlying data
+    # store.
+    #
+    # Note that if this method still isn't enough, you'll have to use the
+    # data store and convert the objects yourself, like so:
+    #   SomeContext.data_store.find_method(arguments).map {{|data| SomeContext.convert_to_plain_object(data)}
+    def data_store_find_all(*args, &block)
+      return [].map {|data| convert_to_plain_object(data)}
+    end
+    
+    # Calls the relevant finder method on the underlying data store, and
+    # converts the result to a plain object.
+    #
+    # Use of this method is discouraged as being non-portable, but sometimes
+    # there is no alternative but to get right down to the underlying data
+    # store.
+    #
+    # Note that if this method still isn't enough, you'll have to use the
+    # data store and convert the object yourself, like so:
+    #   SomeContext.convert_to_plain_object( SomeContext.data_store.find_method(arguments) )
+    def data_store_find_first(*args, &block)
+      return convert_to_plain_object(nil)
     end
     
     # Saves the given object to the persistent store using this context.
