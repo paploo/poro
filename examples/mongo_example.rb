@@ -21,11 +21,8 @@ class Person
     @first_name = first_name
     @last_name = last_name
     @created_at = Time.now
-    #@birthdate = nil
-    #@in_system = true
-    #@friends = []
-    #@heads_of_cattle = rand(1000)
-    @pgs = [PG.new('none')]
+    @friends = []
+    @pgs = [PG.new("group_#{rand(1000)}"), 'none']
   end
   
   attr_reader :first_name, :last_name, :birthdate, :in_system, :friends
@@ -42,6 +39,7 @@ class PG
   
 end
 
+# Make one with the given ID and save it.  This will either insert or update.
 jeff_id = BSON::ObjectId('4c913ec9b5915f5ef5000123')
 mock_jeff = Person.new('Jeff', 'Mock')
 mock_jeff.id = jeff_id
@@ -50,7 +48,7 @@ puts "@@ mock_jeff = " + mock_jeff.inspect
 
 puts ''
 
-# Create or get
+# Create or get another record.  Make sure to put
 ruben_monkey = nil
 if( false )
   p = Person.new('Ruben', 'Monkey')
