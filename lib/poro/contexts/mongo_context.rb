@@ -306,7 +306,7 @@ module Poro
         elsif( class_name && data['managed'] )
           return decode_foreign_managed_object(data)
         else
-          return decode_object(data)
+          return decode_unmanaged_object(data)
         end
       end
       
