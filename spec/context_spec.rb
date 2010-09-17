@@ -6,7 +6,6 @@ describe "Context" do
     @context_klass = Poro::Context
     
     @klass_one = Class.new(Object)
-    @klass_one.send(:include, Poro::Persistify)
   end
   
   it 'should know its class' do
@@ -92,6 +91,8 @@ describe "Context" do
       "#{klass}, #{x}"
     end
     
+    @klass_one.send(:include, Poro::Persistify)
+    
     Poro::Context.fetch(@klass_one).should == "#{@klass_one}, #{x}"
   end
   
@@ -100,6 +101,8 @@ describe "Context" do
     Poro::ContextFactory.instance = Poro::ContextFactory.new do |klass|
       "#{klass}, #{x}"
     end
+    
+    @klass_one.send(:include, Poro::Persistify)
     
     Poro::Context.fetch(@klass_one.new).should == "#{@klass_one}, #{x}"
   end

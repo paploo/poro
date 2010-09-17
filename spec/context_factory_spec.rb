@@ -1,15 +1,12 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 
-describe "ContextManager" do
+describe "ContextFactory" do
   
   before(:all) do
     @context_manager_klass = Poro::ContextFactory
     
     @klass_one = Class.new(Object)
-    @klass_one.send(:include, Poro::Persistify)
-    
     @klass_two = Class.new(String)
-    @klass_two.send(:include, Poro::Persistify)
   end
   
   it 'should save the context instance' do
@@ -29,7 +26,7 @@ describe "ContextManager" do
   end
   
   it 'should run the context block on fetch' do
-    manager = @context_manager_klass.new do |klass|
+    @context_manager_klass.instance = manager = @context_manager_klass.new do |klass|
       if( klass == @klass_one )
         :alpha
       else
@@ -37,16 +34,22 @@ describe "ContextManager" do
       end
     end
     
+    @klass_one.send(:include, Poro::Persistify)
+    @klass_two.send(:include, Poro::Persistify)
+    
     manager.fetch(@klass_one).should == :alpha
     manager.fetch(@klass_two).should == :beta
   end
   
   it 'should cache the fetched result' do
-    manager = @context_manager_klass.new do |klass|
+    @context_manager_klass.instance = manager = @context_manager_klass.new do |klass|
       o = Object.new
       o.instance_variable_set(:@klass, klass)
       o
     end
+    
+    @klass_one.send(:include, Poro::Persistify)
+    @klass_two.send(:include, Poro::Persistify)
     
     context_one = manager.fetch(@klass_one)
     context_two = manager.fetch(@klass_two)
