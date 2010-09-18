@@ -35,21 +35,39 @@ If you wish to run the gem's unit tests, you should also install <tt>rspec</tt>.
 It is also worthwhile checking rake for meaningful tasks, using:
     rake -T
 
+= Supported Data Stores
+
+Currently, the following data stores are supported:
+
+[MongoDB] Install the gems mongo and bson_ext, and you should be good to go!
+          Good automatic support embedded documents, including conversion to
+          objects when it can figure out how to do so.
+[In-Memory Hash] This is really only for trial and testing purposes as it stores
+                 everything in RAM and is lost when the application dies.
+
+The following data stores are currently planned for version 1.0:
+
+[SQL] Install the sequel gem and it should be good to go.
+[Memcache] Install instructions forthcoming.  Will be useful for those working
+           with web apps.
+
 = Architecture
 
-A ContextManager instance is the starting point for using Poro.  The application
-may be configured to use any ContextManager, the managing instance of which is
-set as the default for easy application-wide access.  The ContextManager's
-purpose for existence is to build Context instances for each class.
+Poro revolves around Contexts.  Each class that must persist gets its own
+Context, and that Context manages the persistence of that object.
 
-Contexts allow for easy set-up and customization of how objects are stored and
-retrieved.  Contexts can be thought of as delegate objects that handle these
-tasks, separating their functionality from that of the objects they handle.
+Contexts come in many flavors, depending on the data store that backs them.  To
+create the data stores, the application must have a ContextFactory instance.
+There are different ContextFactories, depending on the needs of your application,
+but the base ContextFactory can be customized via a block.
 
-Lastly, there is a basic module (Persist) which can be included into a model
-for quick addition of the basic interface useful for a a Poro managed object.
-This does a minimal amount of work, and doesn't need to be included, however it
-is normally most beneficial to use this to simplify management.
+In general, Poro is hands-off with the objects it persists, however there is
+one exception:  In order for the ContextFactory to create a Context for an object,
+the object must be tagged as persistent by including Poro::Persistify.
+
+If you wish to have model-like functionality to your objects, you may also
+include Poro::Modelify.  This is not necessary for a Context to be used, but
+the convenience and familiarity of this paradigm makes this desirable functionality.
 
 = Getting Started
 
@@ -134,6 +152,19 @@ http://github.com/paploo/poro
 or directly via e-mail at:
 
 mailto:jeff@paploo.net
+
+= Version History
+
+[0.1.0 - 2010 September 18] Initial public release.  Only supports MongoDB and Hash Contexts.  Is incomplete in documentation and
+
+= TO DO List
+
+The following are the primary TODO items, roughly in priority order:
+
+* Modelify: Break into modules for each piece of functionality.
+* Modelify: Add find methods.
+* Specs: Add spec tests for Mongo Context.
+* Contexts: Add SQL Context.
 
 = License
 
