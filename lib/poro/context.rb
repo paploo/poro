@@ -110,7 +110,7 @@ module Poro
     # Fetches the object from the store with the given id, or returns nil
     # if there are none matching.
     def fetch(id)
-      return nil
+      return clean_id(nil)
     end
     
     # Saves the given object to the persistent store using this context.
@@ -175,6 +175,18 @@ module Poro
       return obj
     end
     
+    private 
+    
+    # Given a value that represents an ID, scrub it to produce a clean ID as
+    # is needed by the data store for the context.
+    #
+    # This is used by methods like <tt>fetch</tt> and <tt>find_for_ids</tt> to
+    # convert the IDs from whatever types the user passed, into the correct
+    # values.
+    def clean_id(id)
+      return id
+    end
+    
   end
 end
 
@@ -187,6 +199,11 @@ module Poro
     #
     # Note that <tt>fetch</tt> is considered basic functionality and not a 
     # find method, even though it technically finds by id.
+    #
+    # Subclasses are expected to override <tt>find_all</tt>, <tt>find_first</tt>,
+    # <tt>data_store_find_all</tt>, and <tt>data_store_find_first</tt>.  All the
+    # other methods delegate out to these, though for efficiency, it is
+    # usually wise to override <tt>find_with_ids</tt> as well.
     module FinderMethods
       
       # Fetches records according to the parameters given in opts.
@@ -221,39 +238,64 @@ module Poro
       # [:limit]      Either the limit of the number of records to get, an array of the
       #               limit and offset, or a hash with keys :limit and/or :offset.
       #
-      # Subclasses rarely need to override this method, as it distributes its call
-      # to one of the helper find methods.
+      # === Subclassing
+      #
+      # Subclasses rarely need to override this method, as it distributes its
+      # work to one of the helper find methods.
       def find(arg, opts={})
         if(arg == :all || arg == :many)
           return find_all(opts)
         elsif( args == :first || arg == :one)
           return find_first(opts)
         elsif( arg.respond_to?(:map) )
-          return arg.map {|id| fetch(id)}
+          return find_with_ids(arg)
         else
-          return fetch(id)
+          return find_by_id(arg)
         end
       end
 
       # Returns an array of all the records that match the following options.
       # See <tt>find</tt> for more help.
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST override this method.
+      #
+      # Subclases usually convert the options into a call to <tt>data_store_find_all</tt>.
       def find_all(opts)
-        return []
+        return data_store_find_all(opts)
       end
 
       # An alias for find_all.
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST NOT override this method.
       def find_many(opts)
         return find_all(opts)
       end
 
       # Returns the first record that matches the following options.
+      # Use of <tt>fetch</tt> is more convenient if finding by ID.
       # See <tt>find</tt> for more help.
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST override this method!
+      #
+      # They usually take one of several tacts:
+      # 1. Convert tothe options and call <tt>data_store_find_first</tt>.
+      # 2. Set the limit to 1 and call <tt>find_all</tt>.
       def find_first(opts)
         hashize_limit(opts[:limit])[:limit] = 1
         return find_all(opts)
       end
 
       # An alias for first.
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST NOT override this method.
       def find_one(opts)
         return find_first(opts)
       end
@@ -268,10 +310,25 @@ module Poro
       # Note that if this method still isn't enough, you'll have to use the
       # data store and convert the objects yourself, like so:
       #   SomeContext.data_store.find_method(arguments).map {{|data| SomeContext.convert_to_plain_object(data)}
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST override this method.
+      #
+      # Subclasses are expected to return the results converted to plain objects using
+      #   self.convert_to_plain_object(data)
       def data_store_find_all(*args, &block)
         return [].map {|data| convert_to_plain_object(data)}
       end
-      alias_method :data_store_find_many, :data_store_find_all
+      
+      # An alias for data_store_find_all.
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST NOT override this method.
+      def data_store_find_many(*args, &block)
+        return data_store_find_all(*args, &block)
+      end
 
       # Calls the relevant finder method on the underlying data store, and
       # converts the result to a plain object.
@@ -283,10 +340,54 @@ module Poro
       # Note that if this method still isn't enough, you'll have to use the
       # data store and convert the object yourself, like so:
       #   SomeContext.convert_to_plain_object( SomeContext.data_store.find_method(arguments) )
+      #
+      #
+      # === Subclassing
+      # 
+      # Subclasses MUST override this method.
+      #
+      # Subclasses are expected to return the result converted to a plain object using
+      #   self.convert_to_plain_object(data)
       def data_store_find_first(*args, &block)
         return convert_to_plain_object(nil)
       end
-      alias_method :data_store_find_one, :data_store_find_many
+      
+      # An alias for data_store_find_first.
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST NOT override this method.
+      def data_store_find_one(*args, &block)
+        return data_store_find_first(*args, &block)
+      end
+      
+      # Returns the first record with the given ID.
+      #
+      # This is just an alias to the fetch method.
+      #
+      # === Subclassing
+      #
+      # Subclasses MUST NOT override this method.
+      def find_by_id(id)
+        return fetch(id)
+      end
+      
+      # Returns the records that correspond to the passed ids (or array of ids).
+      #
+      # === Subclassing
+      #
+      # Subclasses SHOULD override this method.
+      #
+      # By default, this method aggregates separate calls to find_by_id.  For
+      # most data stores this makes N calls to the server, decreasing performance.
+      #
+      # When possible, this method should be overriden by subclasses to be more
+      # efficient, probably calling a <tt>find_all</tt> with the IDs, as
+      # filtered by the <tt>clean_id</tt> private method.
+      def find_with_ids(*ids)
+        ids = ids.flatten
+        return ids.map {|id| find_by_id(id)}
+      end
       
       private
 
