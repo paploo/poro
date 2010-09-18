@@ -73,17 +73,22 @@ module Poro
       end
     end
     
+    # The find methods.  See FindMethods::ClassMethods for details.
     module FindMethods
       
-      def self.included(mod)
+      def self.included(mod) # :nodoc:
         mod.send(:extend, ClassMethods)
       end
       
+      # The model find class methods.
       module ClassMethods
+        
+        # Calls find on the Context.  See Poro::Context::FindMethods for details.
         def find(arg, opts={})
           return context.find(arg, opts)
         end
         
+        # Calls data_store_find on the Context.  See Poro::Context::FindMethods for details.
         def data_store_find(first_or_all, *args, &block)
           return context.data_store_find(first_or_all, *args, &block)
         end

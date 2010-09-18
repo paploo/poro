@@ -64,4 +64,12 @@ describe "Modelify" do
     obj.id.should == new_id
   end
   
+  it 'should respond_to find' do
+    @obj_klass.should respond_to(:find)
+  end
+  
+  it 'should respond_to data_store_find' do
+    @obj_klass.should respond_to(:data_storefind)
+  end
+  
 end

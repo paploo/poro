@@ -191,12 +191,16 @@ end
 
 module Poro
   class Context
-    # A mixin that contains all the context find methods.  The methods
-    # are split into three groups:  RootMethods contains methods that a developer
-    # will most likely not use directly--but that Context authors must override--while
-    # UserMethods contains the methods that a developer is expected to work with often,
-    # but Context authors should never override.  Lastly, some private helper
-    # methods are declared in HelperMethods
+    # A mixin that contains all the context find methods.
+    #
+    # The methods are split into three groups:
+    # [FindMethods] Contains the methods that a developer should use but that
+    #               a Context author should never need to override.
+    # [FindMethods::RootMethods] Contains the methods that a developer should
+    #                            never need to use, but that a Context author
+    #                            needs to override.
+    # [FindMethods::HelperMethods] Some private helper methods that rarely need
+    #                              to be used or overriden.
     #
     # Note that <tt>fetch</tt> is considered basic functionality and not a 
     # find method, even though it technically finds by id.
@@ -211,12 +215,14 @@ module Poro
         mod.send(:private, *HelperMethods.instance_methods)
       end
       
-      # These find methods give the individual pieces of functionality to the
-      # methods in UserMethods, and are made private.  A developer using a
-      # Context shouldn't use these ( use <tt>find</tt> and <tt>data_store_find</tt>
-      # from UserMethods instead), while Context authors must override these
-      # to provide find functionality.
-      # See the inline subclassing documentation sections for each method.
+      # Provides the delegate methods for the find routines.
+      #
+      # These methods are made private so that developers use the main find
+      # methods.  This makes it easier to change behavior in the future due to
+      # the bottlenecking.
+      #
+      # Subclasses of Context should override all of these.
+      # See the inline subclassing documentation sections for each method for details.
       module RootMethods
         
         # Returns an array of all the records that match the following options.
@@ -323,10 +329,13 @@ module Poro
         
       end
       
-      # Contains some private helper methods to help process finds.
+      # Contains some private helper methods to help process finds.  These
+      # rarely need to be used or overriden by Context subclasses.
       module HelperMethods
       
-        # Cleans the find opts.
+        # Cleans the find opts.  This makes it so that no matter which (legal)
+        # style that they give their options to find, they are made into a single
+        # standard format that the subclasses can depend on.
         def clean_find_opts(opts)
           cleaned_opts = opts.dup
           cleaned_opts[:limit] = hashize_limit(opts[:limit]) if opts.has_key?(:limit)
@@ -335,6 +344,11 @@ module Poro
         end
       
         # Takes the limit option to find and returns a uniform hash version of it.
+        #
+        # The hash has the form:
+        #  {:limit => (integer || nil), :offset => (integer)}
+        #
+        # Note that a limit of nil means that all records shoudl be returned.
         def hashize_limit(limit_opt)
           if( limit_opt.kind_of?(Hash) )
             return {:limit => nil, :offset => 0}.merge(limit_opt)
@@ -346,6 +360,9 @@ module Poro
         end
       
         # Takes the order option to find and returns a uniform hash version of it.
+        #
+        # Returns a hash of each sort key followed by either :asc or :desc.  If
+        # there are no sort keys, this returns an empty hash.
         def hashize_order(order_opt)
           if( order_opt.kind_of?(Hash) )
             return order_opt
@@ -412,7 +429,7 @@ module Poro
       
       # Forwards the arguments and any block to the data store's find methods,
       # and returns plain ol' objects as the result.
-      #
+      # 
       # WARNING: This normally should not be used as its behavior is dependent
       # upon the underlying data store, however sometimes there is no equivalent
       # to the functionality offered by the data store given by the normal find
