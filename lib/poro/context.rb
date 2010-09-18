@@ -113,105 +113,6 @@ module Poro
       return nil
     end
     
-    # Fetches records according to the parameters given in opts.
-    #
-    # Contexts attempt to implement this method as uniformily as possible,
-    # however some features only exist in some backings and may or may not be
-    # portable.
-    #
-    # WARNING: For performance, some Contexts may not check that the passed
-    # options are syntactically correct before passing off to their data store.
-    # This could result in the inadvertent support of some underlying functionality
-    # that may go away in a refactor.  Please make sure you only use this method
-    # in the way it is documented for maximal future compatibility.
-    #
-    # Note that if you wish to work more directly with the data store's find
-    # methods, one should see <ttdata_store_find_all</tt> and
-    # <tt>data_store_find_first</tt>.
-    #
-    # The first argument must be one of the following:
-    # * An ID
-    # * An array of IDs
-    # * :all or :many
-    # * :first or :one
-    #
-    # The options are as follows:
-    # [:conditions] A hash of key-value pairs that will be matched against.  They
-    #               are joined by an "and".  Note that in contexts that support embedded
-    #               contexts, the keys may be dot separated keypaths.
-    # [:order]      The name of the key to order by in ascending order, an array of
-    #               keys to order by in ascending order, an array of arrays, or a hash, where
-    #               the first value is the key, and the second value is either :asc or :desc.
-    # [:limit]      Either the limit of the number of records to get, an array of the
-    #               limit and offset, or a hash with keys :limit and/or :offset.
-    #
-    # Subclasses rarely need to override this method, as it distributes its call
-    # to one of the helper find methods.
-    def find(arg, opts={})
-      if(arg == :all || arg == :many)
-        return find_all(opts)
-      elsif( args == :first || arg == :one)
-        return find_first(opts)
-      elsif( arg.respond_to?(:map) )
-        return arg.map {|id| fetch(id)}
-      else
-        return fetch(id)
-      end
-    end
-    
-    # Returns an array of all the records that match the following options.
-    # See <tt>find</tt> for more help.
-    def find_all(opts)
-      return []
-    end
-    
-    # An alias for find_all.
-    def find_many(opts)
-      return find_all(opts)
-    end
-    
-    # Returns the first record that matches the following options.
-    # See <tt>find</tt> for more help.
-    def find_first(opts)
-      hashize_limit(opts[:limit])[:limit] = 1
-      return find_all(opts)
-    end
-    
-    # An alias for first.
-    def find_one(opts)
-      return find_first(opts)
-    end
-    
-    # Calls the relevant finder method on the underlying data store, and
-    # converts all the results to plain objects.
-    #
-    # Use of this method is discouraged as being non-portable, but sometimes
-    # there is no alternative but to get right down to the underlying data
-    # store.
-    #
-    # Note that if this method still isn't enough, you'll have to use the
-    # data store and convert the objects yourself, like so:
-    #   SomeContext.data_store.find_method(arguments).map {{|data| SomeContext.convert_to_plain_object(data)}
-    def data_store_find_all(*args, &block)
-      return [].map {|data| convert_to_plain_object(data)}
-    end
-    alias_method :data_store_find_many, :data_store_find_all
-    
-    # Calls the relevant finder method on the underlying data store, and
-    # converts the result to a plain object.
-    #
-    # Use of this method is discouraged as being non-portable, but sometimes
-    # there is no alternative but to get right down to the underlying data
-    # store.
-    #
-    # Note that if this method still isn't enough, you'll have to use the
-    # data store and convert the object yourself, like so:
-    #   SomeContext.convert_to_plain_object( SomeContext.data_store.find_method(arguments) )
-    def data_store_find_first(*args, &block)
-      return convert_to_plain_object(nil)
-    end
-    alias_method :data_store_find_one, :data_store_find_many
-    
     # Saves the given object to the persistent store using this context.
     #
     # Subclasses do not need to call super, but should follow the given rules:
@@ -274,39 +175,159 @@ module Poro
       return obj
     end
     
-    private
-    
-    # Cleans the find opts.
-    def clean_find_opts(opts)
-      cleaned_opts = opts.dup
-      cleaned_opts[:limit] = hashize_limit(opts[:limit]) if opts.has_key?(:limit)
-      cleaned_opts[:order] = hashize_order(opts[:order]) if opts.has_key?(:order)
-      return cleaned_opts
-    end
-    
-    # Takes the limit option to find and returns a uniform hash version of it.
-    def hashize_limit(limit_opt)
-      if( limit_opt.kind_of?(Hash) )
-        return {:limit => nil, :offset => 0}.merge(limit_opt)
-      elsif( limit_opt.kind_of?(Array) )
-        return {:limit => limit_opt[0], :offset => limit_opt[1]||0}
-      else
-        return {:limit => (limit_opt&&limit_opt.to_i), :offset => 0}
+  end
+end
+
+
+
+
+module Poro
+  class Context
+    # A mixin that contains all the context find methods.
+    #
+    # Note that <tt>fetch</tt> is considered basic functionality and not a 
+    # find method, even though it technically finds by id.
+    module FinderMethods
+      
+      # Fetches records according to the parameters given in opts.
+      #
+      # Contexts attempt to implement this method as uniformily as possible,
+      # however some features only exist in some backings and may or may not be
+      # portable.
+      #
+      # WARNING: For performance, some Contexts may not check that the passed
+      # options are syntactically correct before passing off to their data store.
+      # This could result in the inadvertent support of some underlying functionality
+      # that may go away in a refactor.  Please make sure you only use this method
+      # in the way it is documented for maximal future compatibility.
+      #
+      # Note that if you wish to work more directly with the data store's find
+      # methods, one should see <ttdata_store_find_all</tt> and
+      # <tt>data_store_find_first</tt>.
+      #
+      # The first argument must be one of the following:
+      # * An ID
+      # * An array of IDs
+      # * :all or :many
+      # * :first or :one
+      #
+      # The options are as follows:
+      # [:conditions] A hash of key-value pairs that will be matched against.  They
+      #               are joined by an "and".  Note that in contexts that support embedded
+      #               contexts, the keys may be dot separated keypaths.
+      # [:order]      The name of the key to order by in ascending order, an array of
+      #               keys to order by in ascending order, an array of arrays, or a hash, where
+      #               the first value is the key, and the second value is either :asc or :desc.
+      # [:limit]      Either the limit of the number of records to get, an array of the
+      #               limit and offset, or a hash with keys :limit and/or :offset.
+      #
+      # Subclasses rarely need to override this method, as it distributes its call
+      # to one of the helper find methods.
+      def find(arg, opts={})
+        if(arg == :all || arg == :many)
+          return find_all(opts)
+        elsif( args == :first || arg == :one)
+          return find_first(opts)
+        elsif( arg.respond_to?(:map) )
+          return arg.map {|id| fetch(id)}
+        else
+          return fetch(id)
+        end
       end
-    end
-    
-    # Takes the order option to find and returns a uniform hash version of it.
-    def hashize_order(order_opt)
-      if( order_opt.kind_of?(Hash) )
-        return order_opt
-      elsif( order_opt.kind_of?(Array) )
-        return order_opt.inject({}) {|hash,(key,direction)| hash[key] = direction || :asc; hash}
-      elsif( order_opt.nil? )
-        return {}
-      else
-        return {order_opt => :asc}
+
+      # Returns an array of all the records that match the following options.
+      # See <tt>find</tt> for more help.
+      def find_all(opts)
+        return []
       end
+
+      # An alias for find_all.
+      def find_many(opts)
+        return find_all(opts)
+      end
+
+      # Returns the first record that matches the following options.
+      # See <tt>find</tt> for more help.
+      def find_first(opts)
+        hashize_limit(opts[:limit])[:limit] = 1
+        return find_all(opts)
+      end
+
+      # An alias for first.
+      def find_one(opts)
+        return find_first(opts)
+      end
+
+      # Calls the relevant finder method on the underlying data store, and
+      # converts all the results to plain objects.
+      #
+      # Use of this method is discouraged as being non-portable, but sometimes
+      # there is no alternative but to get right down to the underlying data
+      # store.
+      #
+      # Note that if this method still isn't enough, you'll have to use the
+      # data store and convert the objects yourself, like so:
+      #   SomeContext.data_store.find_method(arguments).map {{|data| SomeContext.convert_to_plain_object(data)}
+      def data_store_find_all(*args, &block)
+        return [].map {|data| convert_to_plain_object(data)}
+      end
+      alias_method :data_store_find_many, :data_store_find_all
+
+      # Calls the relevant finder method on the underlying data store, and
+      # converts the result to a plain object.
+      #
+      # Use of this method is discouraged as being non-portable, but sometimes
+      # there is no alternative but to get right down to the underlying data
+      # store.
+      #
+      # Note that if this method still isn't enough, you'll have to use the
+      # data store and convert the object yourself, like so:
+      #   SomeContext.convert_to_plain_object( SomeContext.data_store.find_method(arguments) )
+      def data_store_find_first(*args, &block)
+        return convert_to_plain_object(nil)
+      end
+      alias_method :data_store_find_one, :data_store_find_many
+      
+      private
+
+      # Cleans the find opts.
+      def clean_find_opts(opts)
+        cleaned_opts = opts.dup
+        cleaned_opts[:limit] = hashize_limit(opts[:limit]) if opts.has_key?(:limit)
+        cleaned_opts[:order] = hashize_order(opts[:order]) if opts.has_key?(:order)
+        return cleaned_opts
+      end
+
+      # Takes the limit option to find and returns a uniform hash version of it.
+      def hashize_limit(limit_opt)
+        if( limit_opt.kind_of?(Hash) )
+          return {:limit => nil, :offset => 0}.merge(limit_opt)
+        elsif( limit_opt.kind_of?(Array) )
+          return {:limit => limit_opt[0], :offset => limit_opt[1]||0}
+        else
+          return {:limit => (limit_opt&&limit_opt.to_i), :offset => 0}
+        end
+      end
+
+      # Takes the order option to find and returns a uniform hash version of it.
+      def hashize_order(order_opt)
+        if( order_opt.kind_of?(Hash) )
+          return order_opt
+        elsif( order_opt.kind_of?(Array) )
+          return order_opt.inject({}) {|hash,(key,direction)| hash[key] = direction || :asc; hash}
+        elsif( order_opt.nil? )
+          return {}
+        else
+          return {order_opt => :asc}
+        end
+      end
+      
     end
-    
+  end
+end
+
+module Poro
+  class Context
+    include FinderMethods
   end
 end
