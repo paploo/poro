@@ -63,8 +63,7 @@ module Poro
       attr_writer :persistent_attributes_blacklist
       
       def fetch(id)
-        id = BSON::ObjectId.from_str(id.to_s) unless id.kind_of?(BSON::ObjectId) #TODO: Make the transform configurable, mongo doesn't require an ObjectId as the key.
-        data = data_store.find_one(id)
+        data = data_store.find_one( clean_id(id) )
         return convert_to_plain_object(data)
       end
       
@@ -93,6 +92,15 @@ module Poro
       
       # =============================== PRIVATE ===============================
       private
+      
+      def clean_id(id)
+        #TODO: Make the attempted transform configurable; mongo doesn't require an ObjectId as the key.
+        # Attempt to convert to an ObjectID if it looks like it should be.
+        if( !(id.kind_of?(BSON::ObjectId)) && BSON::ObjectId.legal?(id.to_s) )
+          id = BSON::ObjectId.from_string(id.to_s)
+        end
+        return id
+      end
       
       # The computed list of instance variables to save, taking into account
       # white lists, black lists, and primary keys.
@@ -372,6 +380,95 @@ module Poro
         end
       end
       
+    end
+  end
+end
+
+
+
+module Poro
+  module Contexts
+    class MongoContext
+      # A mixin of MongoDB finder method implementations.
+      module FinderMethods
+        
+        def find_all(opts)
+          find_opts = mongoize_find_opts(opts)
+          return data_store_find_all(opts[:conditions], find_opts)
+        end
+        
+        def find_first(opts)
+          find_opts = mongoize_find_opts(opts)
+          return data_store_find_one(opts[:conditions], find_opts)
+        end
+        
+        def data_store_find_all(*args, &block)
+          return data_store.find(*args, &block).to_a.map {|data| self.convert_to_plain_object(doc)}
+        end
+        
+        def data_store_find_first(*args, &block)
+          return self.convert_to_plain_object( data_store.find_one(*args, &block) )
+        end
+        
+        # Runs the given find parameters on MongoDB and returns a Mongo::Cursor
+        # object.  Note that you must manually convert the results using
+        # this Context's <tt>convert_to_plain_object(obj)</tt> method or you will
+        # get raw Mongo objects.
+        #
+        # If a block is given, the cursor is automatically iterated over via
+        # the each method, but with the results pre-converterd.  Note that
+        # the result set can change out from under you on an active system if
+        # you iterate in this way.  Additionally, the returned cursor has been
+        # rewound, which means it may find different results!
+        #
+        # This method is useful if you need to do something special, like only
+        # get one result at a time to save on memory.
+        #
+        # WARNING: Even though the method currently does no filtering of the
+        # conditions, allowing advanced queries will work, in the future this
+        # may not be the case.  If your query needs to do more than a simple
+        # query, it is better to use <tt>data_store_find_all</tt>.
+        def data_store_cursor(opts) # :yields: plain_object
+          find_opts = mongoize_find_opts(opts)
+          cursor = data_store.find(opts[:conditions], find_opts)
+          
+          if( block_given? )
+            cursor.each do |doc|
+              plain_object = self.convert_to_plain_object(doc)
+              yield(plain_object)
+            end
+            cursor.rewind!
+          end
+          
+          return cursor
+        end
+        
+        private
+        
+        # Takes find opts, runs them through <tt>clean_find_opts</tt>, and then
+        # converts them to Mongo's find opts.
+        def mongoize_find_opts(opts)
+          opts = clean_find_opts(opts)
+          
+          find_opts = {}
+          
+          find_opts[:limit] = opts[:limit][:limit] if opts[:limit] && opts[:limit][:limit]
+          find_opts[:offset] = opts[:limit][:skip] if opts[:limit] && opts[:limit][:skip]
+          
+          find_opts[:sort] = opts[:order].inject([]) {|a,(k,d)| a << [k, (d == :desc ? Mongo::DESCENDING : Mongo::ASCENDING)]} if opts[:order]
+          
+          return find_opts
+        end
+        
+      end
+    end
+  end
+end
+
+module Poro
+  module Contexts
+    class MongoContext
+      include FinderMethods
     end
   end
 end

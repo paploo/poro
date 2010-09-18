@@ -112,7 +112,7 @@ module Poro
     # Fetches the object from the store with the given id, or returns nil
     # if there are none matching.
     def fetch(id)
-      return clean_id(nil)
+      return convert_to_plain_object( clean_id(nil) )
     end
     
     # Saves the given object to the persistent store using this context.
