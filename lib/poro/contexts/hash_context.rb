@@ -12,7 +12,7 @@ module Poro
       end
       
       def fetch(id)
-        return convert_to_plain_object(data_store[id])
+        return convert_to_plain_object( data_store[clean_id(id)] )
       end
       
       # Searching a hash is incredibly slow because the following steps must
@@ -68,6 +68,10 @@ module Poro
       end
       
       private
+      
+      def clean_id(id)
+        return id && id.to_i
+      end
       
       # Sorting works by taking the found value for two records and comparing them
       # with (a <=> b).to_i.  If the direction is :desc, this is multiplied by
