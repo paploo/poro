@@ -155,14 +155,23 @@ mailto:jeff@paploo.net
 
 = Version History
 
-[0.1.0 - 2010 September 18] Initial public release.  Only supports MongoDB and Hash Contexts.  Is incomplete in documentation and
+[0.1.0 - 2010-Sep-18] Initial public release.
+                      * Major base functionality is complete, though is subject
+                        to big changes as it is used in the real world.
+                      * Only supports MongoDB and Hash Contexts.
+                      * No performance testing and optimization yet done.
+                      * The documentation is rough around the edges and may contain errors.
+                      * Spec tests are incomplete.
 
-= TO DO List
+= TODO List
 
 The following are the primary TODO items, roughly in priority order:
 
 * Modelify: Break into modules for each piece of functionality.
 * Specs: Add specs for Context Find methods.
+  * Check that private methods are private.  (Should do on subclasses too.)
+  * Check that the two main find methods pass through to the correct underlying
+    methods or throw an argument when necessary. 
 * Specs: Add spec tests for Mongo Context.
 * Mongo Context: Split into modules in separate files.
 * Context: Split out modules into files.
@@ -200,6 +209,7 @@ GPL compatible "New BSD License", given below:
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Poro::Util::Inflector is adapted from ActiveSupport, and its source is
-redistributed under the MIT license it was originally distributed under.  The
-text of this copyright notice is supplied in <tt>poro/util/inflector.rb</tt>.
+Poro::Util::Inflector and its submodules are adapted from ActiveSupport,
+and its source is redistributed under the MIT license it was originally
+distributed under.  Thetext of this copyright notice is supplied
+in <tt>poro/util/inflector.rb</tt>.

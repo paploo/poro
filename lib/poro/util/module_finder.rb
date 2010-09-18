@@ -2,9 +2,23 @@ module Poro
   module Util
     module ModuleFinder
       
+      # Finds the given module by string.
+      #
+      # Arguments:
+      # [arg] The module/class name to find.
+      # [relative_root] If given, tries to find the requested class/module
+      #                 within this module/class.  May be a string.
+      # [strict] Normally--mostly like Ruby--a top-level class will be returned
+      #          at any step if no module/class matches in the namespace it is
+      #          searching.  If this is true, then a last check is made to see
+      #          if the returned module/class is actually inside of the relative
+      #          root.
+      #
+      # If given a class, it returns it directly.  TODO: Make it look it up if
+      # relative_root is not Module or Object.
       def self.find(arg, relative_root=Module, strict=false)
         # If the argument is a kind of class, just return right away.
-        return arg if arg.kind_of?(Class)
+        return arg if arg.kind_of?(Module) || arg.kind_of?(Class)
         
         # Now we need to treat it as a string:
         arg = arg.to_s
@@ -34,7 +48,7 @@ module Poro
         mod = recursive_resolve.call(relative_root, mod_names)
         
         # Now, if we are strict, verify it is of the type we are looking for.
-        if relative_root!=Module && !(mod.name.include?(relative_root.name))
+        if (relative_root!=Module || relative_root!=Object) && !(mod.name.include?(relative_root.name))
           base_message = "Could not find a module or class #{mod.name.inspect} inside of #{relative_root.name.inspect}"
           if( strict )
             raise NameError, base_message
