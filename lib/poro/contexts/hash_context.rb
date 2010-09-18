@@ -98,6 +98,9 @@ module Poro
         end
       end
       
+      # Filters out records that, for each of the conditions in the hash,
+      # have a value at the keypath and the value at that keypath matches the
+      # desired value.
       def filter(data, conditions_opt)
         conditions_opt.inject(data) do |matches,(key, value)|
           keypath = key.to_s.split('.')
