@@ -392,24 +392,6 @@ module Poro
       # A mixin of MongoDB finder method implementations.
       module FinderMethods
         
-        def find_all(opts)
-          find_opts = mongoize_find_opts(opts)
-          return data_store_find_all(opts[:conditions], find_opts)
-        end
-        
-        def find_first(opts)
-          find_opts = mongoize_find_opts(opts)
-          return data_store_find_one(opts[:conditions], find_opts)
-        end
-        
-        def data_store_find_all(*args, &block)
-          return data_store.find(*args, &block).to_a.map {|data| self.convert_to_plain_object(doc)}
-        end
-        
-        def data_store_find_first(*args, &block)
-          return self.convert_to_plain_object( data_store.find_one(*args, &block) )
-        end
-        
         # Runs the given find parameters on MongoDB and returns a Mongo::Cursor
         # object.  Note that you must manually convert the results using
         # this Context's <tt>convert_to_plain_object(obj)</tt> method or you will
@@ -444,6 +426,24 @@ module Poro
         end
         
         private
+        
+        def find_all(opts)
+          find_opts = mongoize_find_opts(opts)
+          return data_store_find_all(opts[:conditions], find_opts)
+        end
+        
+        def find_first(opts)
+          find_opts = mongoize_find_opts(opts)
+          return data_store_find_first(opts[:conditions], find_opts)
+        end
+        
+        def data_store_find_all(*args, &block)
+          return data_store.find(*args, &block).to_a.map {|data| self.convert_to_plain_object(doc)}
+        end
+        
+        def data_store_find_first(*args, &block)
+          return self.convert_to_plain_object( data_store.find_one(*args, &block) )
+        end
         
         # Takes find opts, runs them through <tt>clean_find_opts</tt>, and then
         # converts them to Mongo's find opts.

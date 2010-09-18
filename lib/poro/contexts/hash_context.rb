@@ -15,6 +15,39 @@ module Poro
         return convert_to_plain_object( data_store[clean_id(id)] )
       end
       
+      # Save the object in the underlying hash, using the object id as the key.
+      def save(obj)
+        pk_id = self.primary_key_value(obj)
+        self.set_primary_key_value(obj, obj.object_id) if(pk_id.nil?)
+        
+        data_store[obj.id] = convert_to_data(obj)
+        return self
+      end
+      
+      # Remove the object from the underlying hash.
+      def remove(obj)
+        pk_id = self.primary_key_value(obj)
+        if( pk_id != nil )
+          data_store.delete(obj.id)
+          self.set_primary_key_value(obj, nil)
+        end
+        return self
+      end
+      
+      def convert_to_plain_object(data)
+        return data
+      end
+      
+      def convert_to_data(obj)
+        return obj
+      end
+      
+      private
+      
+      def clean_id(id)
+        return id && id.to_i
+      end
+      
       # Searching a hash is incredibly slow because the following steps must
       # be taken:
       # 1. If there is an order, we first have to sort ALL values by the order.
@@ -49,39 +82,6 @@ module Poro
       # returns nil.
       def data_store_find_one(*args, &block)
         return nil
-      end
-      
-      # Save the object in the underlying hash, using the object id as the key.
-      def save(obj)
-        pk_id = self.primary_key_value(obj)
-        self.set_primary_key_value(obj, obj.object_id) if(pk_id.nil?)
-        
-        data_store[obj.id] = convert_to_data(obj)
-        return self
-      end
-      
-      # Remove the object from the underlying hash.
-      def remove(obj)
-        pk_id = self.primary_key_value(obj)
-        if( pk_id != nil )
-          data_store.delete(obj.id)
-          self.set_primary_key_value(obj, nil)
-        end
-        return self
-      end
-      
-      def convert_to_plain_object(data)
-        return data
-      end
-      
-      def convert_to_data(obj)
-        return obj
-      end
-      
-      private
-      
-      def clean_id(id)
-        return id && id.to_i
       end
       
       # Sorting works by taking the found value for two records and comparing them

@@ -162,8 +162,10 @@ mailto:jeff@paploo.net
 The following are the primary TODO items, roughly in priority order:
 
 * Modelify: Break into modules for each piece of functionality.
-* Modelify: Add find methods.
+* Specs: Add specs for Context Find methods.
 * Specs: Add spec tests for Mongo Context.
+* Mongo Context: Split into modules in separate files.
+* Context: Split out modules into files.
 * Contexts: Add SQL Context.
 
 = License

@@ -210,19 +210,19 @@ describe "HashContext" do
     it 'should find all' do
       opts = {:conditions => {:last_name => 'Smith'}, :order => :first_name}
       expected_values = [3,1]
-      values = @context.find_all(opts).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values = @context.find(:all, opts).map {|record| @context.send(:value_for_key, record, :id)[:value]}
       values.should == expected_values
       
-      values = @context.find_many(opts).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values = @context.find(:many, opts).map {|record| @context.send(:value_for_key, record, :id)[:value]}
       values.should == expected_values
     end
     
     it 'should find first' do
       opts = {:conditions => {:last_name => 'Smith'}, :order => :first_name}
-      record = @context.find_first(opts)
+      record = @context.find(:first, opts)
       @context.send(:value_for_key, record, :id)[:value].should == 3
       
-      record = @context.find_one(opts)
+      record = @context.find(:one, opts)
       @context.send(:value_for_key, record, :id)[:value].should == 3
     end
     

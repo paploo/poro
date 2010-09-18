@@ -30,6 +30,7 @@ module Poro
     def self.included(mod) # :nodoc:
       mod.send(:extend, ClassMethods)
       mod.send(:include, InstanceMethods)
+      mod.send(:include, FindMethods)
       
       context = Context.fetch(mod)
       pk = context.primary_key.to_s.gsub(/[^A-Za-z0-9]/, '_').strip
@@ -70,6 +71,24 @@ module Poro
       def context
         return Context.fetch(self)
       end
+    end
+    
+    module FindMethods
+      
+      def self.included(mod)
+        mod.send(:extend, ClassMethods)
+      end
+      
+      module ClassMethods
+        def find(arg, opts={})
+          return context.find(arg, opts)
+        end
+        
+        def data_store_find(first_or_all, *args, &block)
+          return context.data_store_find(first_or_all, *args, &block)
+        end
+      end
+      
     end
     
   end

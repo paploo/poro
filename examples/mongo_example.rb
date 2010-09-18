@@ -57,7 +57,7 @@ else
   ruben_monkey_cursor = Person.context.data_store_cursor(:order => {:first_name => :desc}) {|o| puts '++' + o.inspect }
   puts "--\n" + ruben_monkey_cursor.to_a.inspect
   puts ''
-  ruben_monkey_data = Person.context.find_first(:conditions => {:first_name => 'Ruben', :last_name => 'Monkey'})
+  ruben_monkey_data = Person.context.find(:first, :conditions => {:first_name => 'Ruben', :last_name => 'Monkey'})
   ruben_monkey = Person.context.convert_to_plain_object(ruben_monkey_data)
 end
 
