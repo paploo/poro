@@ -39,23 +39,34 @@ module Poro
         return find_all(opts)[0]
       end
       
+      # The data store has no built in finding mechanism, so this always
+      # returns an empty array.
+      def data_store_find_all(*args, &block)
+        return []
+      end
+      
+      # The data store has no built in finding mechanism, so this always
+      # returns nil.
+      def data_store_find_one(*args, &block)
+        return nil
+      end
+      
+      # Save the object in the underlying hash, using the object id as the key.
       def save(obj)
-        raise SaveError, "Cannot save an object that can't have an ID." unless obj.respond_to?(:id)
-        if( obj.id.nil? )
-          raise SaveError, "Cannot save an object that cannot have an ID assigned to it." unless obj.respond_to?(:id=)
-          obj.id = obj.object_id
-        end
+        pk_id = self.primary_key_value(obj)
+        self.set_primary_key_value(obj, obj.object_id) if(pk_id.nil?)
         
         data_store[obj.id] = convert_to_data(obj)
         return self
       end
       
+      # Remove the object from the underlying hash.
       def remove(obj)
-        raise RemoveError, "Cannot remove an object that can't have an ID." unless obj.respond_to?(:id)
-        raise RemoveError, "Cannot remove an object that cannot have an ID assigned to it." unless obj.respond_to?(:id=)
-        
-        data_store.delete(obj.id)
-        obj.id = nil
+        pk_id = self.primary_key_value(obj)
+        if( pk_id != nil )
+          data_store.delete(obj.id)
+          self.set_primary_key_value(obj, nil)
+        end
         return self
       end
       

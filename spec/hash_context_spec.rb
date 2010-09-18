@@ -59,7 +59,7 @@ describe "HashContext" do
     o.should_not respond_to(:id)
     o.should_not respond_to(:id=)
     
-    lambda {@context.save(o)}.should raise_error(Poro::Context::SaveError)
+    lambda {@context.save(o)}.should raise_error
   end
   
   it "should error when trying to remove an object that can't handle IDs" do
@@ -67,7 +67,7 @@ describe "HashContext" do
     o.should_not respond_to(:id)
     o.should_not respond_to(:id=)
     
-    lambda {@context.remove(o)}.should raise_error(Poro::Context::RemoveError)
+    lambda {@context.remove(o)}.should raise_error
   end
   
   describe "Finding" do

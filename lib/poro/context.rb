@@ -15,12 +15,6 @@ module Poro
   # methods for setting options and configuring behavior.
   class Context
     
-    # This error is thrown when a save fails.
-    class SaveError < RuntimeError; end
-    
-    # This error is thrown when a remove fails.
-    class RemoveError < RuntimeError; end
-    
     # Fetches the context for the given object or class from
     # <tt>ContextFactory.instance</tt>.
     # Returns nil if no context is found.
@@ -125,7 +119,7 @@ module Poro
     # an id.  If the object has been added before, the id is used to update
     # the existing record.
     #
-    # Raises a SaveError if save fails.
+    # Raises an Error if save fails.
     def save(obj)
       obj.id = obj.object_id if obj.respond_to?(:id) && obj.id.nil? && obj.respond_to?(:id=)
       return obj
@@ -139,7 +133,7 @@ module Poro
     #
     # If the object is successfully removed, the id is set to nil.
     #
-    # Raises a RemoveError is the remove fails.
+    # Raises an Error is the remove fails.
     def remove(obj)
       obj.id = nil if obj.respond_to?(:id=)
       return obj
