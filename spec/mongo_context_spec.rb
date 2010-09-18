@@ -11,7 +11,7 @@ describe 'MongoContext' do
   end
   
   it "should have tests" do
-    fail "No tests written"
+    pending "No tests written yet."
   end
   
   describe 'Decoding' do

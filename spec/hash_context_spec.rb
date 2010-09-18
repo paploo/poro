@@ -70,4 +70,162 @@ describe "HashContext" do
     lambda {@context.remove(o)}.should raise_error(Poro::Context::RemoveError)
   end
   
+  describe "Finding" do
+    
+    before(:each) do
+      
+      class HashContextPerson
+        include Poro::Persistify
+        def initialize(id, first_name, last_name, friends)
+          @id = id
+          @first_name = first_name
+          @last_name = last_name
+          @friends = friends
+        end
+      end
+      
+      george_smith = HashContextPerson.new(1, 'George', 'Smith', [])
+      george_archer = HashContextPerson.new(2, 'George', 'Archer', [george_smith])
+      bridgette_smith = {'id' => 3, 'first_name' => 'Bridgette', 'last_name' => 'Smith'}
+      karen_zeta = {:id => 4, :first_name => 'Karen', :last_name => 'Zeta', :friends => [george_archer, george_smith]}
+      @data = [
+        george_smith,
+        george_archer,
+        bridgette_smith,
+        karen_zeta
+      ]
+      
+      @context = Poro::Contexts::HashContext.new(HashContextPerson)
+      
+      # Cheat to jam the data in there:
+      @context.data_store = @data
+    end
+    
+    it 'should get shallow values' do
+      expected_first_names = ['George', 'George', 'Bridgette', 'Karen']
+      first_names_sym = @data.map {|record| @context.send(:value_for_key, record, :first_name)[:value]}
+      first_names_str = @data.map {|record| @context.send(:value_for_key, record, 'first_name')[:value]}
+      first_names_sym.should == first_names_str
+      first_names_sym.should == expected_first_names
+      
+      expected_ids = [1, 2, 3, 4]
+      ids_sym = @data.map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      ids_str = @data.map {|record| @context.send(:value_for_key, record, 'id')[:value]}
+      ids_sym.should == ids_str
+      ids_sym.should == expected_ids
+    end
+    
+    it 'should get embedded' do
+      expected_values = [{:found=>false, :value=>nil}, {:found=>true, :value=>1}, {:found=>false, :value=>nil}, {:found=>true, :value=>2}]
+      values = @data.map {|record| @context.send(:value_for_key, record, 'friends.0.id')}
+      values.should == expected_values
+    end
+    
+    it 'should sort' do
+      order_opt = {:first_name => :asc}
+      expected_values = [3,1,2,4]
+      values = @context.send(:sort, @data, order_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      order_opt = {:first_name => :asc, :last_name => :asc}
+      expected_values = [3,2,1,4]
+      values = @context.send(:sort, @data, order_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      order_opt = {:first_name => :asc, :last_name => :desc}
+      expected_values = [3,1,2,4]
+      values = @context.send(:sort, @data, order_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      order_opt = {:last_name => :asc, :first_name => :asc}
+      expected_values = [2,3,1,4]
+      values = @context.send(:sort, @data, order_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      order_opt = {'friends.0.id' => :asc, 'last_name' => :desc, 'first_name' => :desc}
+      expected_values = [1,3,2,4]
+      values = @context.send(:sort, @data, order_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+    end
+    
+    it 'should filter' do
+      filter_opt = {:last_name => 'Smith'}
+      expected_values = [1,3]
+      values = @context.send(:filter, @data, filter_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      filter_opt = {'first_name' => 'George'}
+      expected_values = [1,2]
+      values = @context.send(:filter, @data, filter_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      filter_opt = {:first_name => 'George', 'last_name' => 'Smith'}
+      expected_values = [1]
+      values = @context.send(:filter, @data, filter_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      filter_opt = {'friends.0.id' => nil}
+      expected_values = []
+      values = @context.send(:filter, @data, filter_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      filter_opt = {'friends.0.id' => 2}
+      expected_values = [4]
+      values = @context.send(:filter, @data, filter_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+    end
+    
+    it 'should limit' do
+      limit_opt = {:limit => nil, :offset => 0}
+      expected_values = [1,2,3,4]
+      values = @context.send(:limit, @data, limit_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      limit_opt = {:limit => 2, :offset => 0}
+      expected_values = [1,2]
+      values = @context.send(:limit, @data, limit_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      limit_opt = {:limit => 2, :offset => 3}
+      expected_values = [4]
+      values = @context.send(:limit, @data, limit_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      limit_opt = {:limit => 100, :offset => 2}
+      expected_values = [3,4]
+      values = @context.send(:limit, @data, limit_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      limit_opt = {:limit => nil, :offset => 2}
+      expected_values = [3,4]
+      values = @context.send(:limit, @data, limit_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      limit_opt = {:limit => nil, :offset => 100}
+      expected_values = []
+      values = @context.send(:limit, @data, limit_opt).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+    end
+    
+    it 'should find all' do
+      opts = {:conditions => {:last_name => 'Smith'}, :order => :first_name}
+      expected_values = [3,1]
+      values = @context.find_all(opts).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+      
+      values = @context.find_many(opts).map {|record| @context.send(:value_for_key, record, :id)[:value]}
+      values.should == expected_values
+    end
+    
+    it 'should find first' do
+      opts = {:conditions => {:last_name => 'Smith'}, :order => :first_name}
+      record = @context.find_first(opts)
+      @context.send(:value_for_key, record, :id)[:value].should == 3
+      
+      record = @context.find_one(opts)
+      @context.send(:value_for_key, record, :id)[:value].should == 3
+    end
+    
+  end
+  
 end
