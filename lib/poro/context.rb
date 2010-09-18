@@ -1,6 +1,8 @@
 module Poro
   # This is the abstract superclass of all Contexts.
   #
+  # For find methods, see FindMethods.
+  #
   # The Context is the responsible delegate for directly interfacing with the
   # persistence layer.  Each program class that needs persistence must have its
   # own context instance that knows how to store/retrive only instances of that
@@ -195,7 +197,9 @@ end
 
 module Poro
   class Context
-    # A mixin that contains all the context find methods.
+    # A mixin that contains all the context find methods.  The methods
+    # are split into behaviors based on subclasses.  See OverrideManditory,
+    # OverrideOptional, and OverrideForbidden for all supported methods.
     #
     # Note that <tt>fetch</tt> is considered basic functionality and not a 
     # find method, even though it technically finds by id.
@@ -204,193 +208,199 @@ module Poro
     # <tt>data_store_find_all</tt>, and <tt>data_store_find_first</tt>.  All the
     # other methods delegate out to these, though for efficiency, it is
     # usually wise to override <tt>find_with_ids</tt> as well.
-    module FinderMethods
+    module FindMethods
       
-      # Fetches records according to the parameters given in opts.
-      #
-      # Contexts attempt to implement this method as uniformily as possible,
-      # however some features only exist in some backings and may or may not be
-      # portable.
-      #
-      # WARNING: For performance, some Contexts may not check that the passed
-      # options are syntactically correct before passing off to their data store.
-      # This could result in the inadvertent support of some underlying functionality
-      # that may go away in a refactor.  Please make sure you only use this method
-      # in the way it is documented for maximal future compatibility.
-      #
-      # Note that if you wish to work more directly with the data store's find
-      # methods, one should see <ttdata_store_find_all</tt> and
-      # <tt>data_store_find_first</tt>.
-      #
-      # The first argument must be one of the following:
-      # * An ID
-      # * An array of IDs
-      # * :all or :many
-      # * :first or :one
-      #
-      # The options are as follows:
-      # [:conditions] A hash of key-value pairs that will be matched against.  They
-      #               are joined by an "and".  Note that in contexts that support embedded
-      #               contexts, the keys may be dot separated keypaths.
-      # [:order]      The name of the key to order by in ascending order, an array of
-      #               keys to order by in ascending order, an array of arrays, or a hash, where
-      #               the first value is the key, and the second value is either :asc or :desc.
-      # [:limit]      Either the limit of the number of records to get, an array of the
-      #               limit and offset, or a hash with keys :limit and/or :offset.
-      #
-      # === Subclassing
-      #
-      # Subclasses rarely need to override this method, as it distributes its
-      # work to one of the helper find methods.
-      def find(arg, opts={})
-        if(arg == :all || arg == :many)
-          return find_all(opts)
-        elsif( args == :first || arg == :one)
-          return find_first(opts)
-        elsif( arg.respond_to?(:map) )
-          return find_with_ids(arg)
-        else
-          return find_by_id(arg)
+      def self.included(mod) # :nodoc:
+        mod.send(:include, OverrideManditory)
+        mod.send(:include, OverrideOptional)
+        mod.send(:include, OverrideForbidden)
+      end
+      
+      # Find methods that subclasses MUST override.
+      module OverrideManditory
+        
+        # Returns an array of all the records that match the following options.
+        # See <tt>find</tt> for more help.
+        #
+        # === Subclassing
+        #
+        # Subclasses MUST override this method.
+        #
+        # Subclases usually convert the options into a call to <tt>data_store_find_all</tt>.
+        def find_all(opts)
+          return data_store_find_all(opts)
         end
-      end
-
-      # Returns an array of all the records that match the following options.
-      # See <tt>find</tt> for more help.
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST override this method.
-      #
-      # Subclases usually convert the options into a call to <tt>data_store_find_all</tt>.
-      def find_all(opts)
-        return data_store_find_all(opts)
-      end
-
-      # An alias for find_all.
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST NOT override this method.
-      def find_many(opts)
-        return find_all(opts)
-      end
-
-      # Returns the first record that matches the following options.
-      # Use of <tt>fetch</tt> is more convenient if finding by ID.
-      # See <tt>find</tt> for more help.
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST override this method!
-      #
-      # They usually take one of several tacts:
-      # 1. Convert tothe options and call <tt>data_store_find_first</tt>.
-      # 2. Set the limit to 1 and call <tt>find_all</tt>.
-      def find_first(opts)
-        hashize_limit(opts[:limit])[:limit] = 1
-        return find_all(opts)
-      end
-
-      # An alias for first.
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST NOT override this method.
-      def find_one(opts)
-        return find_first(opts)
-      end
-
-      # Calls the relevant finder method on the underlying data store, and
-      # converts all the results to plain objects.
-      #
-      # Use of this method is discouraged as being non-portable, but sometimes
-      # there is no alternative but to get right down to the underlying data
-      # store.
-      #
-      # Note that if this method still isn't enough, you'll have to use the
-      # data store and convert the objects yourself, like so:
-      #   SomeContext.data_store.find_method(arguments).map {{|data| SomeContext.convert_to_plain_object(data)}
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST override this method.
-      #
-      # Subclasses are expected to return the results converted to plain objects using
-      #   self.convert_to_plain_object(data)
-      def data_store_find_all(*args, &block)
-        return [].map {|data| convert_to_plain_object(data)}
+        
+        # Returns the first record that matches the following options.
+        # Use of <tt>fetch</tt> is more convenient if finding by ID.
+        # See <tt>find</tt> for more help.
+        #
+        # === Subclassing
+        #
+        # Subclasses MUST override this method!
+        #
+        # They usually take one of several tacts:
+        # 1. Convert tothe options and call <tt>data_store_find_first</tt>.
+        # 2. Set the limit to 1 and call <tt>find_all</tt>.
+        def find_first(opts)
+          hashize_limit(opts[:limit])[:limit] = 1
+          return find_all(opts)
+        end
+        
+        # Calls the relevant finder method on the underlying data store, and
+        # converts all the results to plain objects.
+        #
+        # Use of this method is discouraged as being non-portable, but sometimes
+        # there is no alternative but to get right down to the underlying data
+        # store.
+        #
+        # Note that if this method still isn't enough, you'll have to use the
+        # data store and convert the objects yourself, like so:
+        #   SomeContext.data_store.find_method(arguments).map {{|data| SomeContext.convert_to_plain_object(data)}
+        #
+        # === Subclassing
+        #
+        # Subclasses MUST override this method.
+        #
+        # Subclasses are expected to return the results converted to plain objects using
+        #   self.convert_to_plain_object(data)
+        def data_store_find_all(*args, &block)
+          return [].map {|data| convert_to_plain_object(data)}
+        end
+        
+        # Calls the relevant finder method on the underlying data store, and
+        # converts the result to a plain object.
+        #
+        # Use of this method is discouraged as being non-portable, but sometimes
+        # there is no alternative but to get right down to the underlying data
+        # store.
+        #
+        # Note that if this method still isn't enough, you'll have to use the
+        # data store and convert the object yourself, like so:
+        #   SomeContext.convert_to_plain_object( SomeContext.data_store.find_method(arguments) )
+        #
+        #
+        # === Subclassing
+        # 
+        # Subclasses MUST override this method.
+        #
+        # Subclasses are expected to return the result converted to a plain object using
+        #   self.convert_to_plain_object(data)
+        def data_store_find_first(*args, &block)
+          return convert_to_plain_object(nil)
+        end
+        
       end
       
-      # An alias for data_store_find_all.
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST NOT override this method.
-      def data_store_find_many(*args, &block)
-        return data_store_find_all(*args, &block)
+      # Find methods that subclasses should override, but don't have to.
+      module OverrideOptional
+        
+        # Returns the records that correspond to the passed ids (or array of ids).
+        #
+        # === Subclassing
+        #
+        # Subclasses SHOULD override this method.
+        #
+        # By default, this method aggregates separate calls to find_by_id.  For
+        # most data stores this makes N calls to the server, decreasing performance.
+        #
+        # When possible, this method should be overriden by subclasses to be more
+        # efficient, probably calling a <tt>find_all</tt> with the IDs, as
+        # filtered by the <tt>clean_id</tt> private method.
+        def find_with_ids(*ids)
+          ids = ids.flatten
+          return ids.map {|id| find_by_id(id)}
+        end
+        
       end
+      
+      # Methods subclasses should not override.
+      #
+      # Of course, there are some legitimate exceptions to this, but if you feel
+      # the need to override any of these, odds are you missed something.
+      module OverrideForbidden
+        
+        # Fetches records according to the parameters given in opts.
+        #
+        # Contexts attempt to implement this method as uniformily as possible,
+        # however some features only exist in some backings and may or may not be
+        # portable.
+        #
+        # WARNING: For performance, some Contexts may not check that the passed
+        # options are syntactically correct before passing off to their data store.
+        # This could result in the inadvertent support of some underlying functionality
+        # that may go away in a refactor.  Please make sure you only use this method
+        # in the way it is documented for maximal future compatibility.
+        #
+        # Note that if you wish to work more directly with the data store's find
+        # methods, one should see <ttdata_store_find_all</tt> and
+        # <tt>data_store_find_first</tt>.
+        #
+        # The first argument must be one of the following:
+        # * An ID
+        # * An array of IDs
+        # * :all or :many
+        # * :first or :one
+        #
+        # The options are as follows:
+        # [:conditions] A hash of key-value pairs that will be matched against.  They
+        #               are joined by an "and".  Note that in contexts that support embedded
+        #               contexts, the keys may be dot separated keypaths.
+        # [:order]      The name of the key to order by in ascending order, an array of
+        #               keys to order by in ascending order, an array of arrays, or a hash, where
+        #               the first value is the key, and the second value is either :asc or :desc.
+        # [:limit]      Either the limit of the number of records to get, an array of the
+        #               limit and offset, or a hash with keys :limit and/or :offset.
+        #
+        # === Subclassing
+        #
+        # Subclasses MUST NOT override this method.
+        #
+        # This method delegates out its calls to other methods that should be
+        # overridden by subclasses.
+        def find(arg, opts={})
+          if(arg == :all || arg == :many)
+            return find_all(opts)
+          elsif( args == :first || arg == :one)
+            return find_first(opts)
+          elsif( arg.respond_to?(:map) )
+            return find_with_ids(arg)
+          else
+            return find_by_id(arg)
+          end
+        end
+        
+        # An alias for find_all.
+        def find_many(opts)
+          return find_all(opts)
+        end
 
-      # Calls the relevant finder method on the underlying data store, and
-      # converts the result to a plain object.
-      #
-      # Use of this method is discouraged as being non-portable, but sometimes
-      # there is no alternative but to get right down to the underlying data
-      # store.
-      #
-      # Note that if this method still isn't enough, you'll have to use the
-      # data store and convert the object yourself, like so:
-      #   SomeContext.convert_to_plain_object( SomeContext.data_store.find_method(arguments) )
-      #
-      #
-      # === Subclassing
-      # 
-      # Subclasses MUST override this method.
-      #
-      # Subclasses are expected to return the result converted to a plain object using
-      #   self.convert_to_plain_object(data)
-      def data_store_find_first(*args, &block)
-        return convert_to_plain_object(nil)
+        # An alias for find_first.
+        def find_one(opts)
+          return find_first(opts)
+        end
+
+        # An alias for data_store_find_all.
+        def data_store_find_many(*args, &block)
+          return data_store_find_all(*args, &block)
+        end
+
+        # An alias for data_store_find_first.
+        def data_store_find_one(*args, &block)
+          return data_store_find_first(*args, &block)
+        end
+
+        # Returns the first record with the given ID.
+        # This is just an alias to the fetch method.
+        def find_by_id(id)
+          return fetch(id)
+        end
+        
       end
       
-      # An alias for data_store_find_first.
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST NOT override this method.
-      def data_store_find_one(*args, &block)
-        return data_store_find_first(*args, &block)
-      end
-      
-      # Returns the first record with the given ID.
-      #
-      # This is just an alias to the fetch method.
-      #
-      # === Subclassing
-      #
-      # Subclasses MUST NOT override this method.
-      def find_by_id(id)
-        return fetch(id)
-      end
-      
-      # Returns the records that correspond to the passed ids (or array of ids).
-      #
-      # === Subclassing
-      #
-      # Subclasses SHOULD override this method.
-      #
-      # By default, this method aggregates separate calls to find_by_id.  For
-      # most data stores this makes N calls to the server, decreasing performance.
-      #
-      # When possible, this method should be overriden by subclasses to be more
-      # efficient, probably calling a <tt>find_all</tt> with the IDs, as
-      # filtered by the <tt>clean_id</tt> private method.
-      def find_with_ids(*ids)
-        ids = ids.flatten
-        return ids.map {|id| find_by_id(id)}
-      end
-      
+      # ========== PRIVATE METHODS ==========
       private
-
+      
       # Cleans the find opts.
       def clean_find_opts(opts)
         cleaned_opts = opts.dup
@@ -398,7 +408,7 @@ module Poro
         cleaned_opts[:order] = hashize_order(opts[:order]) if opts.has_key?(:order)
         return cleaned_opts
       end
-
+      
       # Takes the limit option to find and returns a uniform hash version of it.
       def hashize_limit(limit_opt)
         if( limit_opt.kind_of?(Hash) )
@@ -409,7 +419,7 @@ module Poro
           return {:limit => (limit_opt&&limit_opt.to_i), :offset => 0}
         end
       end
-
+      
       # Takes the order option to find and returns a uniform hash version of it.
       def hashize_order(order_opt)
         if( order_opt.kind_of?(Hash) )
@@ -429,6 +439,6 @@ end
 
 module Poro
   class Context
-    include FinderMethods
+    include FindMethods
   end
 end
