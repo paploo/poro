@@ -1,4 +1,5 @@
 # Require foundation.
+require 'poro/version'
 require 'poro/util'
 
 # Require core classes and modules.
