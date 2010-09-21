@@ -182,6 +182,8 @@ The following are the primary TODO items, roughly in priority order:
     SingleStore factory.
   * Modify SingleStore to use this file for configuration when appropriate.
 * Modelify: Break into modules for each piece of functionality.
+* Modelify: Add callback methods to Modelify.
+  * Add the callbacks to the Context first.
 * Specs: Add specs for Context Find methods.
   * Check that private methods are private.  (Should do on subclasses too.)
   * Check that the two main find methods pass through to the correct underlying
