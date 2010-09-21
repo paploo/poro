@@ -22,6 +22,11 @@ through whatever inferior homogenized API Poro may try to provide.
 
 = Installation
 
+At this time, Poro has only ever been tested on ruby 1.9.2.  It is expected to
+work on any 1.9.x, but may require some effort to make work on 1.8.6 or later.
+By version 1.0 I hope to have 1.8.6 and 1.8.7 support, however the development
+of a production worthy gem in 1.9.2 takes the priority.
+
 Basic usage only requires the installation of the gem:
     gem install poro
 However to utilize any meaningful persistence data store, the underlying gems
@@ -162,11 +167,20 @@ mailto:jeff@paploo.net
                       * No performance testing and optimization yet done.
                       * The documentation is rough around the edges and may contain errors.
                       * Spec tests are incomplete.
+[0.1.1 - 2010-Sep-??] Minor Additions and Bug Fixes.
+                      * MongoContext now can optionally encode Symbols as hashes
+                        or just leave them as strings.
+                      * MongoContext can have conversion to BSON::ObjectId turned off.
 
 = TODO List
 
 The following are the primary TODO items, roughly in priority order:
 
+* YAML Connection Configuration:
+  * Make a Util module that is able to use a rails-compatible YAML
+    file--given by path--to get the elements needed for configuration of a
+    SingleStore factory.
+  * Modify SingleStore to use this file for configuration when appropriate.
 * Modelify: Break into modules for each piece of functionality.
 * Specs: Add specs for Context Find methods.
   * Check that private methods are private.  (Should do on subclasses too.)
@@ -176,6 +190,8 @@ The following are the primary TODO items, roughly in priority order:
 * Mongo Context: Split into modules in separate files.
 * Context: Split out modules into files.
 * Contexts: Add SQL Context.
+* Ruby: Verify support for ruby 1.9.x.
+* Ruby: Evaluate adding support for ruby 1.8.6 and 1.8.7.
 
 = License
 

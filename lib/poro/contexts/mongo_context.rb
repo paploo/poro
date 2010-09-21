@@ -45,6 +45,11 @@ module Poro
         @persistent_attributes_whitelist = nil
         @persistent_attributes_blacklist = nil
         
+        # Some configuration variables
+        @encode_symbols = false
+        @attempt_id_conversion = true
+        
+        
         # Initialize
         super(klass)
       end
@@ -61,6 +66,27 @@ module Poro
       
       attr_reader :persistent_attributes_blacklist
       attr_writer :persistent_attributes_blacklist
+      
+      # If true, it encodes Symbol as a hash with a class name property, and
+      # then decodes them back into Symbol.  If false, it converts them to
+      # String for storage.  Defaults to false.
+      #
+      # While one would think they want to preserve the type of the saved element,
+      # the change in storage method makes it harder to write Mongo queries on the
+      # data.  Thus it is normally best to save symbols as strings for storage.
+      attr_reader :encode_symbols
+      attr_writer :encode_symbols
+      
+      # Normally, one uses BSON::ObjectId instances for the IDs on a stored
+      # Mongo object.  However, one can design a database to use many different
+      # values as sthe primary key.
+      #
+      # When this is set to true, fetch tries to convert the given ID into a
+      # BSON::ObjectId before doing a fetch.  If the conversion fails, it tries using
+      # the raw value given.  If this is set to false, then it always passes
+      # along the raw value, skipping the conversion step.
+      attr_reader :attempt_id_conversion
+      attr_writer :attempt_id_conversion
       
       def fetch(id)
         data = data_store.find_one( clean_id(id) )
@@ -94,9 +120,8 @@ module Poro
       private
       
       def clean_id(id)
-        #TODO: Make the attempted transform configurable; mongo doesn't require an ObjectId as the key.
         # Attempt to convert to an ObjectID if it looks like it should be.
-        if( !(id.kind_of?(BSON::ObjectId)) && BSON::ObjectId.legal?(id.to_s) )
+        if( self.attempt_id_conversion && !(id.kind_of?(BSON::ObjectId)) && BSON::ObjectId.legal?(id.to_s) )
           id = BSON::ObjectId.from_string(id.to_s)
         end
         return id
@@ -123,6 +148,7 @@ module Poro
           obj.kind_of?(Float) ||
           obj.kind_of?(String) ||
           obj.kind_of?(Time) ||
+          (self.encode_symbols && obj.kind_of?(Symbol)) ||
           obj==true ||
           obj==false ||
           obj.nil? ||
@@ -178,6 +204,8 @@ module Poro
           return encode_array(obj)
         elsif( obj.kind_of?(Class) )
           return encode_class(obj)
+        elsif( !self.encode_symbols && obj.kind_of?(Symbol) )
+          return encode_symbol(obj)
         elsif( Context.managed_class?(obj.class) && Context.fetch(obj.class).kind_of?(self.class) )
           return encode_mongo_managed_object(obj)
         elsif( Context.managed_class?(obj.class))
@@ -205,6 +233,11 @@ module Poro
       # Encode a class.
       def encode_class(klass)
         return {'_class_name' => klass.class, 'name' => klass.name}
+      end
+      
+      # Encodes a symbol.
+      def encode_symbol(sym)
+        return {'_class_name' => 'Symbol', 'value' => sym.to_s}
       end
       
       # Encode a hash that came from a DBRef dereferenced and decoded by this context.
@@ -294,6 +327,8 @@ module Poro
         class_name = data['_class_name'].to_s
         if( class_name == 'Class' )
           return decode_class(data)
+        elsif( class_name == 'Symbol' )
+          return decode_symbol(data)
         elsif( class_name == self.klass.to_s )
           return decode_self_managed_object(data)
         elsif( class_name && data['managed'] )
@@ -319,6 +354,17 @@ module Poro
       # Decode a class reference.
       def decode_class(class_data)
         return Util::ModuleFinder.find(class_data['name'])
+      end
+      
+      # Decode a symbol reference.  If this users of the Context expect a Symbol
+      # to be encoded as a Symbol, then decode it as a Symbol.  Otherwise the
+      # users of the Context wil be expecting a String.
+      def decode_symbol(symbol_data)
+        if self.encode_symbols
+          return symbol_data['value'].to_sym
+        else
+          return symbol_data['value'].to_s
+        end
       end
       
       # Decode a BSON::DBRef.  If there is a context for the reference, it is
