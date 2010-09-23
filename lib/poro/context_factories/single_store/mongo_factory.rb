@@ -22,7 +22,7 @@ module Poro
           raise ArgumentError, "No mongo connection was supplied to #{self.class.name}." if @connection.nil?
           
           super() do |klass|
-            collection_name = Util::Inflector.pluralize(Util::Inflector.underscore(klass.name.to_s))
+            collection_name = Util::Inflector.pluralize(Util::Inflector.underscore(klass.name.to_s)).gsub('/', '_')
             context = Contexts::MongoContext.new(klass)
             context.data_store = @connection[collection_name]
             yield(klass, context) if block_given?
