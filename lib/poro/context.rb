@@ -316,7 +316,7 @@ module Poro
         #
         # Subclasses SHOULD override this method.
         #
-        # By default, this method aggregates separate calls to find_by_id.  For
+        # By default, this method aggregates separate calls to fetch.  For
         # most data stores this makes N calls to the server, decreasing performance.
         #
         # When possible, this method should be overriden by subclasses to be more
@@ -324,7 +324,7 @@ module Poro
         # filtered by the <tt>clean_id</tt> private method.
         def find_with_ids(*ids)
           ids = ids.flatten
-          return ids.map {|id| find_by_id(id)}
+          return ids.map {|id| fetch(id)}
         end
         
       end
@@ -423,7 +423,7 @@ module Poro
         elsif( arg.respond_to?(:map) )
           return find_with_ids(arg)
         else
-          return find_by_id(arg)
+          return fetch(arg)
         end
       end
       

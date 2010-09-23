@@ -171,7 +171,9 @@ mailto:jeff@paploo.net
                       * MongoContext now can optionally encode Symbols as hashes
                         or just leave them as strings.
                       * MongoContext can have conversion to BSON::ObjectId turned off.
-                      * MongoCOntext can save Sets in various formats.
+                      * MongoContext can save Sets in various formats.
+                      * MongoContext handles namespaced models better.
+                      * Context doesn't error when trying to find by id.
 
 = TODO List
 
