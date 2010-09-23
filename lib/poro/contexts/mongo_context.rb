@@ -511,7 +511,7 @@ module Poro
         end
         
         def data_store_find_all(*args, &block)
-          return data_store.find(*args, &block).to_a.map {|data| self.convert_to_plain_object(doc)}
+          return data_store.find(*args, &block).to_a.map {|doc| self.convert_to_plain_object(doc)}
         end
         
         def data_store_find_first(*args, &block)
