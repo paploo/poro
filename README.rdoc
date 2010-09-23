@@ -171,6 +171,7 @@ mailto:jeff@paploo.net
                       * MongoContext now can optionally encode Symbols as hashes
                         or just leave them as strings.
                       * MongoContext can have conversion to BSON::ObjectId turned off.
+                      * MongoCOntext can save Sets in various formats.
 
 = TODO List
 
@@ -182,8 +183,12 @@ The following are the primary TODO items, roughly in priority order:
     SingleStore factory.
   * Modify SingleStore to use this file for configuration when appropriate.
 * Modelify: Break into modules for each piece of functionality.
-* Modelify: Add callback methods to Modelify.
+* Modelify: Add callback functionality to Modelify (e.g. before/after save, after initialize).
   * Add the callbacks to the Context first.
+* Mongo Context: Add option to encode Sets as one of:
+  * A Set with the raw internal Hash.
+  * A Set with the internal Hash as an Array.
+  * An Array (which will have to be manually turned back into a Set).
 * Specs: Add specs for Context Find methods.
   * Check that private methods are private.  (Should do on subclasses too.)
   * Check that the two main find methods pass through to the correct underlying

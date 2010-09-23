@@ -48,6 +48,7 @@ module Poro
         # Some configuration variables
         @encode_symbols = false
         @attempt_id_conversion = true
+        @set_encoding_method = :embedded_array
         
         
         # Initialize
@@ -204,6 +205,8 @@ module Poro
           return encode_array(obj)
         elsif( obj.kind_of?(Class) )
           return encode_class(obj)
+        elsif( obj.kind_of?(Set) )
+          return encode_set(obj)
         elsif( !self.encode_symbols && obj.kind_of?(Symbol) )
           return encode_symbol(obj)
         elsif( Context.managed_class?(obj.class) && Context.fetch(obj.class).kind_of?(self.class) )
@@ -238,6 +241,18 @@ module Poro
       # Encodes a symbol.
       def encode_symbol(sym)
         return {'_class_name' => 'Symbol', 'value' => sym.to_s}
+      end
+      
+      # Encodes a Set as either :raw, :embedded_array, :array.
+      def encode_set(set)
+        method = @set_encoding_method
+        if( method = :raw )
+          return encode_unmanaged_object(set)
+        elsif( method = :embedded_array )
+          return {'_class_name' => 'Set', 'values' => self.convert_to_data(set.to_a, :embedded => true)}
+        else
+          return self.convert_to_data(set.to_a, :embedded => true)
+        end
       end
       
       # Encode a hash that came from a DBRef dereferenced and decoded by this context.
@@ -329,6 +344,8 @@ module Poro
           return decode_class(data)
         elsif( class_name == 'Symbol' )
           return decode_symbol(data)
+        elsif( class_name == 'Set' )
+          return decode_set(data)
         elsif( class_name == self.klass.to_s )
           return decode_self_managed_object(data)
         elsif( class_name && data['managed'] )
@@ -364,6 +381,16 @@ module Poro
           return symbol_data['value'].to_sym
         else
           return symbol_data['value'].to_s
+        end
+      end
+      
+      # Decode the set depending on if it was encoded as an array or as a raw
+      # object.
+      def decode_set(set_data)
+        if( set_data.include?['values'] )
+          return Set.new(set_data['values'])
+        else
+          return decode_unmanaged_object(set_data)
         end
       end
       
