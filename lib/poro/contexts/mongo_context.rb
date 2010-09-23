@@ -246,9 +246,9 @@ module Poro
       # Encodes a Set as either :raw, :embedded_array, :array.
       def encode_set(set)
         method = @set_encoding_method
-        if( method = :raw )
+        if( method == :raw )
           return encode_unmanaged_object(set)
-        elsif( method = :embedded_array )
+        elsif( method == :embedded_array )
           return {'_class_name' => 'Set', 'values' => self.convert_to_data(set.to_a, :embedded => true)}
         else
           return self.convert_to_data(set.to_a, :embedded => true)
