@@ -440,9 +440,9 @@ module Poro
       # * :first or :one
       def data_store_find(first_or_all, *args, &block)
         if(first_or_all == :all || first_or_all == :many)
-          return data_store_find_all(*first_or_all, &block)
+          return data_store_find_all(*args, &block)
         elsif( first_or_all == :first || first_or_all == :one)
-          return data_store_find_first(*first_or_all, &block)
+          return data_store_find_first(*args, &block)
         else
           raise ArgumentError, "#{__method__} expects the first argument to be one of :all, :many, :first, or :one."
         end
