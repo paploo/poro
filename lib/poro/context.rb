@@ -37,7 +37,7 @@ module Poro
     #
     # This really just fetches (and creates, if necessary) the
     # Context for the class, and then yields it to the block.  Returns the context.
-    def self.configure_for_klass(klass)
+    def self.configure_for_class(klass)
       context = self.fetch(klass)
       yield(context) if block_given?
       return context

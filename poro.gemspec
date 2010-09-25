@@ -2,7 +2,7 @@ require 'rake'
 
 Gem::Specification.new do |s|
   s.name = 'poro'
-  s.version = '0.2.0'
+  s.version = '0.1.2'
   
   s.required_ruby_version = '>= 1.9.2'
   

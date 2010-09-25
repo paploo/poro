@@ -18,9 +18,12 @@ module Poro
       # Save the object in the underlying hash, using the object id as the key.
       def save(obj)
         pk_id = self.primary_key_value(obj)
-        self.set_primary_key_value(obj, obj.object_id) if(pk_id.nil?)
+        if(pk_id.nil?)
+          pk_id = obj.object_id
+          self.set_primary_key_value(obj, pk_id)
+        end
         
-        data_store[obj.id] = convert_to_data(obj)
+        data_store[pk_id] = convert_to_data(obj)
         return self
       end
       
@@ -28,7 +31,7 @@ module Poro
       def remove(obj)
         pk_id = self.primary_key_value(obj)
         if( pk_id != nil )
-          data_store.delete(obj.id)
+          data_store.delete(pk_id)
           self.set_primary_key_value(obj, nil)
         end
         return self
@@ -43,10 +46,6 @@ module Poro
       end
       
       private
-      
-      def clean_id(id)
-        return id && id.to_i
-      end
       
       # Searching a hash is incredibly slow because the following steps must
       # be taken:
