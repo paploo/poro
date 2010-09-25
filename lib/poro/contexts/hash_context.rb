@@ -54,14 +54,36 @@ module Poro
       # 2. Then we must find all matching records.
       # 3. Then we must apply limit and offset to fetch the correct record.
       #
-      # There are several optimizations that can be made in the future:
-      # 1. When matching the last key in the list, we can stop processing when
-      #    we reach the limit+offset number of records.
-      # 2. If the offset is higher than the total number of stored records, then
+      # There are several optimizations to this that have already been done:
+      # * If the conditions include the primary key, use fetch and drop that
+      #   condition.
+      # * If the offset is higher than the total number of stored records, then
       #    we know there will be no matches.
+      #
+      # There are several optimizations that can be made in the future:
+      # * When matching the last key in the list, we can stop processing when
+      #    we reach the limit+offset number of records.
       def find_all(opts)
         opts = clean_find_opts(opts)
-        data = limit( filter( sort( data_store.values, opts[:order] ), opts[:conditions] ), opts[:limit])
+        
+        # If the offset is bigger than the stored number of records, we know that
+        # we'll get nothing:
+        return [] if( (opts[:limit]&&opts[:limit][:offset]).to_i > data_store.length )
+        
+        # If a search condition is the primary key, we can significantly limit our work.
+        values = nil
+        data = nil
+        if( opts[:conditions].has_key?( self.primary_key ) )
+          pk_value = opts[:conditions].delete(self.primary_key)
+          obj = self.fetch( pk_value )
+          values = obj.nil? ? [] : [obj]
+          data = limit( filter( values, opts[:conditions]), opts[:limit] )
+        else
+          values = data_store.values
+          data = limit( filter( sort( values, opts[:order] ), opts[:conditions] ), opts[:limit])
+        end
+        
+        # Now do the search.
         return data.map {|data| convert_to_plain_object(data)}
       end
       

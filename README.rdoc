@@ -162,7 +162,7 @@ mailto:jeff@paploo.net
 
 [0.2.0 - 2010-Oct-xx] Feature Additions
                       * Added a module namespace factory.
-                      * HashContext finds on primary key faster.
+                      * HashContext: Find one is faster when the conditions restrict on the primary key.
                       * Many HashContext bugs fixed.
 [0.1.1 - 2010-Sep-24] Minor Additions and Bug Fixes.
                       * MongoContext now can optionally encode Symbols as hashes
