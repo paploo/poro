@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 
-describe "Namespaced Context Factory" do
+describe "Namespace Context Factory" do
   
   it 'should register and fetch a default factory' do
     default_factory = :default_factory
