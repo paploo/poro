@@ -61,7 +61,7 @@ module Poro
       #    we know there will be no matches.
       def find_all(opts)
         opts = clean_find_opts(opts)
-        data = limit( filter( sort( data_store.dup, opts[:order] ), opts[:conditions] ), opts[:limit])
+        data = limit( filter( sort( data_store.values, opts[:order] ), opts[:conditions] ), opts[:limit])
         return data.map {|data| convert_to_plain_object(data)}
       end
       

@@ -76,18 +76,21 @@ describe "HashContext" do
       
       class HashContextPerson
         include Poro::Persistify
-        def initialize(id, first_name, last_name, friends)
+        def initialize(id, first_name, last_name, friends=[])
           @id = id
           @first_name = first_name
           @last_name = last_name
           @friends = friends
         end
+        
+        attr_reader :id
+        attr_writer :id
       end
       
-      george_smith = HashContextPerson.new(1, 'George', 'Smith', [])
+      george_smith = HashContextPerson.new(1, 'George', 'Smith')
       george_archer = HashContextPerson.new(2, 'George', 'Archer', [george_smith])
-      bridgette_smith = {'id' => 3, 'first_name' => 'Bridgette', 'last_name' => 'Smith'}
-      karen_zeta = {:id => 4, :first_name => 'Karen', :last_name => 'Zeta', :friends => [george_archer, george_smith]}
+      bridgette_smith = HashContextPerson.new(3, 'Bridgette', 'Smith')
+      karen_zeta = HashContextPerson.new(4, 'Karen', 'Zeta', [george_archer, george_smith])
       @data = [
         george_smith,
         george_archer,
@@ -96,9 +99,7 @@ describe "HashContext" do
       ]
       
       @context = Poro::Contexts::HashContext.new(HashContextPerson)
-      
-      # Cheat to jam the data in there:
-      @context.data_store = @data
+      @data.each {|person| @context.save(person)}
     end
     
     it 'should get shallow values' do
