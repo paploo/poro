@@ -49,8 +49,8 @@ describe "Namespaced Context Factory" do
     @klass_1.send(:include, Poro::Persistify)
     @klass_2 = Class.new(Object)
     @klass_2.send(:include, Poro::Persistify)
-    ::PoroNamespacedContextFactoryTestOne = @klass_1
-    ::PoroNamespacedContextFactoryTestTwo = @klass_2
+    ::PoroNamespacedContextFactoryTestFetchOne = @klass_1
+    ::PoroNamespacedContextFactoryTestFetcgTwo = @klass_2
     
     @klass_1.name.should_not == @klass_2.name
     
@@ -67,28 +67,28 @@ describe "Namespaced Context Factory" do
     context.should == "foo #{@klass_2.name}"
   end
   
-  it 'should take a post-configuration block' do
+  it 'should take a configuration block' do
     @klass_1 = Class.new(Object)
     @klass_1.send(:include, Poro::Persistify)
-    ::PoroNamespacedContextFactoryTestBlock = @klass_1
+    @klass_2 = Class.new(Object)
+    @klass_2.send(:include, Poro::Persistify)
+    ::PoroNamespacedContextFactoryTestBlockOne = @klass_1
+    ::PoroNamespacedContextFactoryTestBlockTwo = @klass_2
+    
+    @klass_1.name.should_not == @klass_2.name
     
     default_factory = Poro::ContextFactory.new {|klass| "default #{klass.name}"}
     foo_factory = Poro::ContextFactory.new {|klass| "foo #{klass.name}"}
     
-    block_klass = nil
-    block_context = nil
-    factory = Poro::ContextFactories::NamespaceFactory.new(default_factory) do |klass, context|
-      block_klass = klass
-      block_context = context
+    factory = Poro::ContextFactories::NamespaceFactory.new(default_factory) do |f|
+      f.register_factory(foo_factory, @klass_2.name)
     end
     
-    block_klass.should be_nil
-    block_context.should be_nil
+    context = factory.fetch(@klass_1)
+    context.should == "default #{@klass_1.name}"
     
-    factory.fetch(@klass_1)
-    
-    block_klass.should == @klass_1
-    block_context.should == "default #{@klass_1.name}"
+    context = factory.fetch(@klass_2)
+    context.should == "foo #{@klass_2.name}"
   end
   
 end

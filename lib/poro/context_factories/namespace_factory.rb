@@ -18,20 +18,21 @@ module Poro
       # factory.  Use <tt>register_factory</tt> to add more kinds of factories
       # to this app.
       #
-      # If given a block, it is yielded the class and context generated.
+      # If given a block, it is yielded self for further configuration.  This
+      # departs slightly from the standard of yielding a Class or
+      # Class and Context for configuration, but as this is more useful for
+      # practicle applications.  (It also doesn't configure a context itself,
+      # so giving separate blocks to the sub-factories given to it is more
+      # appropriate.
       def initialize(default_factory)
         @root_node = CacheNode.new
         @root_node.factory = default_factory
         
+        yield(self) if block_given?
+        
         super() do |klass|
-          factory = self.fetch_factory(klass.name)
-          if( factory != nil )
-            context = factory.fetch(klass)
-            yield(klass, context) if block_given?
-            context
-          else
-            nil
-          end
+          factory = self.fetch_factory(klass)
+          factory.nil? ? nil : factory.fetch(klass)
         end
       end
       
