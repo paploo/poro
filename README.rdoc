@@ -160,6 +160,8 @@ mailto:jeff@paploo.net
 
 = Version History
 
+[0.2.0 - 2010-Oct-xx] Feature Additions
+                      * Added a module namespace factory.
 [0.1.1 - 2010-Sep-24] Minor Additions and Bug Fixes.
                       * MongoContext now can optionally encode Symbols as hashes
                         or just leave them as strings.

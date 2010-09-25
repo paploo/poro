@@ -31,7 +31,7 @@ module Poro
     end
     
     def context_managed_class?(klass)
-      return klass.include?(Poro::Persistify)
+      return klass && klass.include?(Poro::Persistify)
     end
     
     # Fetches the context for a given class, or returns nil if the given object
