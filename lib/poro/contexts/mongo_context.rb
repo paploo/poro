@@ -223,7 +223,7 @@ module Poro
       # Recursively encode a hash's contents.
       def encode_hash(hash)
         return hash.inject({}) do |hash,(k,v)|
-          hash[k] = self.convert_to_data(value, :embedded => true)
+          hash[k] = self.convert_to_data(v, :embedded => true)
           hash
         end
       end
