@@ -149,7 +149,7 @@ module Poro
           obj.kind_of?(Float) ||
           obj.kind_of?(String) ||
           obj.kind_of?(Time) ||
-          (self.encode_symbols && obj.kind_of?(Symbol)) ||
+          (!self.encode_symbols && obj.kind_of?(Symbol)) ||
           obj==true ||
           obj==false ||
           obj.nil? ||
@@ -207,7 +207,7 @@ module Poro
           return encode_class(obj)
         elsif( obj.kind_of?(Set) )
           return encode_set(obj)
-        elsif( !self.encode_symbols && obj.kind_of?(Symbol) )
+        elsif( self.encode_symbols && obj.kind_of?(Symbol) )
           return encode_symbol(obj)
         elsif( Context.managed_class?(obj.class) && Context.fetch(obj.class).kind_of?(self.class) )
           return encode_mongo_managed_object(obj)
