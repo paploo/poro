@@ -387,7 +387,7 @@ module Poro
       # Decode the set depending on if it was encoded as an array or as a raw
       # object.
       def decode_set(set_data)
-        if( set_data.include?['values'] )
+        if( set_data.include?('values') )
           return Set.new(set_data['values'])
         else
           return decode_unmanaged_object(set_data)
