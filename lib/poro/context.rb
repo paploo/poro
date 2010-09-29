@@ -53,6 +53,11 @@ module Poro
       ContextFactory.instance = context_factory
     end
     
+    # Returns true if there is a factory assigned to the application.
+    def self.factory?
+      ContextFactory.has_instance?
+    end
+    
     # Initizialize this context for the given class.  Yields self if a block
     # is given, so that instances can be easily configured at instantiation.
     #

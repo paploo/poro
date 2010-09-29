@@ -23,6 +23,11 @@ module Poro
       @instance = instance
     end
     
+    # Returns true if a context factory instance is configured.
+    def self.has_instance?
+      return (@instance != nil)
+    end
+    
     # Takes a factory block that delivers a configured context for the class
     # passed to it.
     def initialize(&context_factory_block)
