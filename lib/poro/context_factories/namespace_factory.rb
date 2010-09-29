@@ -24,7 +24,7 @@ module Poro
       # practicle applications.  (It also doesn't configure a context itself,
       # so giving separate blocks to the sub-factories given to it is more
       # appropriate.
-      def initialize(default_factory)
+      def initialize(default_factory=nil)
         @root_node = CacheNode.new
         @root_node.factory = default_factory
         
