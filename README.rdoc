@@ -183,6 +183,7 @@ mailto:jeff@paploo.net
 
 The following are the primary TODO items, roughly in priority order:
 
+* Replace all the ugly if( obj.kind_of?(SomeClass)) constructs with pretty case obj; when SomeClass constructs.
 * YAML Connection Configuration:
   * Make a Util module that is able to use a rails-compatible YAML
     file--given by path--to get the elements needed for configuration of a
