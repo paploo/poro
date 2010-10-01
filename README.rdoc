@@ -160,7 +160,7 @@ mailto:jeff@paploo.net
 
 = Version History
 
-[0.1.2 - 2010-Oct-xx] Feature Additions
+[0.1.2 - 2010-Sep-30] Feature Additions
                       * Added a module namespace factory.
                       * HashContext: Find one is faster when the conditions restrict on the primary key.
                       * Many HashContext bugs fixed.
