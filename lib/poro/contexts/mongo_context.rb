@@ -102,7 +102,7 @@ module Poro
       end
       
       def remove(obj)
-        return obj
+        return data_store.remove( {'_id' => primary_key_value(obj)} )
       end
       
       def convert_to_plain_object(data, state_info={})
