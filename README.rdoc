@@ -160,16 +160,21 @@ mailto:jeff@paploo.net
 
 = Version History
 
-[0.1.3 - 2010-Oct-13] Bug Fixes.
+[0.1.3 - 2010-Oct-xx] Bug Fixes.
                       * MongoContext: You can actually remove records now.
+                      * MongoContext: Bigint encodes instead of throwing errors.
+                      * MongoContext: Made recognition of true/false/nil class
+                        during encoding more robust.
 [0.1.2 - 2010-Sep-30] Feature Additions.
                       * Added a module namespace factory.
-                      * HashContext: Find one is faster when the conditions restrict on the primary key.
+                      * HashContext: Find one is faster when the conditions
+                        restrict on the primary key.
                       * Many HashContext bugs fixed.
 [0.1.1 - 2010-Sep-24] Minor Additions and Bug Fixes.
                       * MongoContext now can optionally encode Symbols as hashes
                         or just leave them as strings.
-                      * MongoContext can have conversion to BSON::ObjectId turned off.
+                      * MongoContext can have conversion to BSON::ObjectId
+                        turned off.
                       * MongoContext can save Sets in various formats.
                       * MongoContext handles namespaced models better.
                       * Context doesn't error when trying to find by id.
@@ -178,7 +183,8 @@ mailto:jeff@paploo.net
                         to big changes as it is used in the real world.
                       * Only supports MongoDB and Hash Contexts.
                       * No performance testing and optimization yet done.
-                      * The documentation is rough around the edges and may contain errors.
+                      * The documentation is rough around the edges and may
+                        contain errors.
                       * Spec tests are incomplete.
 
 = TODO List

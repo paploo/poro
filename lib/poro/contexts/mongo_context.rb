@@ -150,9 +150,9 @@ module Poro
           obj.kind_of?(String) ||
           obj.kind_of?(Time) ||
           (!self.encode_symbols && obj.kind_of?(Symbol)) ||
-          obj==true ||
-          obj==false ||
-          obj.nil? ||
+          obj.kind_of?(TrueClass) ||
+          obj.kind_of?(FalseClass) ||
+          obj.kind_of?(NilClass) ||
           obj.kind_of?(BSON::ObjectId) ||
           obj.kind_of?(BSON::DBRef)
         )
@@ -205,6 +205,8 @@ module Poro
           return encode_array(obj)
         elsif( obj.kind_of?(Class) )
           return encode_class(obj)
+        elsif( obj.kind_of?(Bigint) )
+          return encode_bigint(obj)
         elsif( obj.kind_of?(Set) )
           return encode_set(obj)
         elsif( self.encode_symbols && obj.kind_of?(Symbol) )
@@ -241,6 +243,11 @@ module Poro
       # Encodes a symbol.
       def encode_symbol(sym)
         return {'_class_name' => 'Symbol', 'value' => sym.to_s}
+      end
+      
+      # Encodes a big-int, which is too big to be natively encoded in BSON.
+      def encode_bigint(bigint)
+        return {'_class_name' => 'Bigint', 'value' => bigint.to_s}
       end
       
       # Encodes a Set as either :raw, :embedded_array, :array.
@@ -344,6 +351,8 @@ module Poro
           return decode_class(data)
         elsif( class_name == 'Symbol' )
           return decode_symbol(data)
+        elsif( class_name == 'Bigint' )
+          return decode_bigint(data)
         elsif( class_name == 'Set' )
           return decode_set(data)
         elsif( class_name == self.klass.to_s )
@@ -382,6 +391,11 @@ module Poro
         else
           return symbol_data['value'].to_s
         end
+      end
+      
+      # Decode an encoded bigint.
+      def decode_bigint(bigint_data)
+        return bigint_data['value'].to_i
       end
       
       # Decode the set depending on if it was encoded as an array or as a raw
