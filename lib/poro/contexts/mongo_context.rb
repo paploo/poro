@@ -205,7 +205,7 @@ module Poro
           return encode_array(obj)
         elsif( obj.kind_of?(Class) )
           return encode_class(obj)
-        elsif( obj.kind_of?(Bigint) )
+        elsif( obj.kind_of?(Bignum) )
           return encode_bigint(obj)
         elsif( obj.kind_of?(Set) )
           return encode_set(obj)
@@ -247,7 +247,7 @@ module Poro
       
       # Encodes a big-int, which is too big to be natively encoded in BSON.
       def encode_bigint(bigint)
-        return {'_class_name' => 'Bigint', 'value' => bigint.to_s}
+        return {'_class_name' => 'Bignum', 'value' => bigint.to_s}
       end
       
       # Encodes a Set as either :raw, :embedded_array, :array.
@@ -351,7 +351,7 @@ module Poro
           return decode_class(data)
         elsif( class_name == 'Symbol' )
           return decode_symbol(data)
-        elsif( class_name == 'Bigint' )
+        elsif( class_name == 'Bignum' )
           return decode_bigint(data)
         elsif( class_name == 'Set' )
           return decode_set(data)

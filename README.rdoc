@@ -162,7 +162,7 @@ mailto:jeff@paploo.net
 
 [0.1.3 - 2010-Oct-xx] Bug Fixes.
                       * MongoContext: You can actually remove records now.
-                      * MongoContext: Bigint encodes instead of throwing errors.
+                      * MongoContext: Bignum encodes instead of throwing errors.
                       * MongoContext: Made recognition of true/false/nil class
                         during encoding more robust.
 [0.1.2 - 2010-Sep-30] Feature Additions.
