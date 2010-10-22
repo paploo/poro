@@ -107,4 +107,60 @@ describe "Context" do
     Poro::Context.fetch(@klass_one.new).should == "#{@klass_one}, #{x}"
   end
   
+  describe 'Callbakcs' do
+    
+    before(:each) do
+      @context = @context_klass.new(@klass_one)
+    end
+    
+    it 'should allow direct inspection of callbacks' do
+      bs_callbacks = @context.callbacks(:before_save)
+      bs_callbacks.should be_kind_of(Array)
+      
+      as_callbacks = @context.callbacks(:after_save)
+      as_callbacks.should be_kind_of(Array)
+      
+      as_callbacks.object_id.should_not == bs_callbacks.object_id
+      @context.callbacks(:before_save).object_id.should == bs_callbacks.object_id
+    end
+    
+    it 'should allow callback registration' do
+      @context.callbacks(:before_save).should be_empty
+      @context.register_callback(:before_save) {|obj| obj}
+      @context.callbacks(:before_save).length.should == 1
+      
+      @context.register_callback(:after_save) {|obj| obj}
+      @context.callbacks(:after_save).length.should == 1
+      
+      @context.callbacks(:before_save).length.should == 1
+    end
+    
+    it 'should clear callbacks' do
+      @context.register_callback(:before_save) {|obj| obj}
+      @context.callbacks(:before_save).length.should == 1
+      @context.clear_callbacks(:before_save)
+      @context.callbacks(:before_save).should be_empty
+    end
+    
+    it 'should call event callbacks' do
+      pending
+    end
+    
+    it 'should handle transform callbacks' do
+      pending
+    end
+    
+    it 'should handle filter callbacks' do
+      pending
+    end
+    
+  end
+  
+  describe 'FindHelpers' do
+    
+   # No tests necessary as the HashContext has a full suite of tests that depends
+   # upon these working.
+    
+  end
+  
 end
