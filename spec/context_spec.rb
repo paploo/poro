@@ -222,8 +222,13 @@ describe "Context" do
   
   describe 'FindHelpers' do
     
-   # No tests necessary as the HashContext has a full suite of tests that depends
-   # upon these working.
+   it 'should have base methods private' do
+     pending
+   end
+   
+   it 'should pass calls from the main two public methods to their underlying private methods based on argument' do
+     pending
+   end
     
   end
   

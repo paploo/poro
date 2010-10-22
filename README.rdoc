@@ -160,7 +160,7 @@ mailto:jeff@paploo.net
 
 = Version History
 
-[0.1.3 - 2010-Oct-xx] Callbacks and MongoContext Bug Fixes.
+[0.1.3 - 2010-Oct-21] Callbacks and MongoContext Bug Fixes.
                       * Added callbacks for common events.
                       * MongoContext: You can actually remove records now.
                       * MongoContext: Bignum encodes instead of throwing errors.
@@ -192,28 +192,18 @@ mailto:jeff@paploo.net
 
 The following are the primary TODO items, roughly in priority order:
 
-* Replace all the ugly if( obj.kind_of?(SomeClass)) constructs with pretty case obj; when SomeClass constructs.
 * YAML Connection Configuration:
-  * Make a Util module that is able to use a rails-compatible YAML
+  * Make a Util module that is able to use a rails-style YAML
     file--given by path--to get the elements needed for configuration of a
     SingleStore factory.
   * Modify SingleStore to use this file for configuration when appropriate.
 * Modelify: Break into modules for each piece of functionality.
-* Modelify: Add callback functionality to Modelify (e.g. before/after save, after initialize).
-  * Add the callbacks to the Context first.
-* Mongo Context: Add option to encode Sets as one of:
-  * A Set with the raw internal Hash.
-  * A Set with the internal Hash as an Array.
-  * An Array (which will have to be manually turned back into a Set).
 * Specs: Add specs for Context Find methods.
-  * Check that private methods are private.  (Should do on subclasses too.)
-  * Check that the two main find methods pass through to the correct underlying
-    methods or throw an argument when necessary. 
 * Specs: Add spec tests for Mongo Context.
 * Mongo Context: Split into modules in separate files.
 * Context: Split out modules into files.
 * Contexts: Add SQL Context.
-* Ruby: Verify support for ruby 1.9.x.
+* Ruby: Verify support for ruby 1.9.0 and 1.9.1.
 * Ruby: Evaluate adding support for ruby 1.8.6 and 1.8.7.
 
 = License
@@ -250,5 +240,5 @@ GPL compatible "New BSD License", given below:
 
 Poro::Util::Inflector and its submodules are adapted from ActiveSupport,
 and its source is redistributed under the MIT license it was originally
-distributed under.  Thetext of this copyright notice is supplied
+distributed under.  The text of this copyright notice is supplied
 in <tt>poro/util/inflector.rb</tt>.
