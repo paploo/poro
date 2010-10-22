@@ -568,6 +568,9 @@ module Poro
       # Executes callbacks until the last true-valued filter; returns the last
       # true valued object.
       #
+      # By convention, filter events should end in a question mark to make it
+      # clear that the true/false value is important.
+      #
       # * Each registered callback is given the original object, making this
       #   behave more like an event than a transform.
       # * Filters are expected to be non-destructive, as they are used to
@@ -581,8 +584,8 @@ module Poro
       # argument, which--if not provided--is set to true.
       def callback_filter?(event, obj, default_result=true)
         result = default_result
-        return callbacks(event).each do |callback|
-          result = hook.call(obj)
+        callbacks(event).each do |callback|
+          result = callback.call(obj)
           break unless result
         end
         return result

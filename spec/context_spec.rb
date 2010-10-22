@@ -142,16 +142,80 @@ describe "Context" do
       @context.callbacks(:before_save).should be_empty
     end
     
+    it 'should have private firing methods' do
+      @context.private_methods.should include(:callback_event)
+      @context.private_methods.should include(:callback_transform)
+      @context.private_methods.should include(:callback_filter?)
+    end
+    
     it 'should call event callbacks' do
-      pending
+      @context.register_callback(:before_save) {|obj| obj[:foo] = 'bar'}
+      @context.register_callback(:before_save) {|obj| obj[:alpha] = 'beta'}
+      @context.register_callback(:after_save) {|obj| obj[:p] = 'q'}
+      
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_event, :before_save, some_object)
+      result.object_id.should == some_object.object_id
+      some_object.should == {:foo => 'bar', :value => 12345, :alpha => 'beta'}
     end
     
     it 'should handle transform callbacks' do
-      pending
+      @context.register_callback(:before_save) {|obj| obj.merge(:foo => 'bar')}
+      @context.register_callback(:before_save) {|obj| obj.merge(:alpha => 'beta').to_a}
+      @context.register_callback(:after_save) {|obj| 'q'}
+      
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_transform, :before_save, some_object)
+      result.should == [[:foo, 'bar'], [:value, 12345], [:alpha, 'beta']]
+      some_object.should == {:foo => 'untouched', :value => 12345}
+    end
+    
+    it 'should handle no transform callbacks' do
+      @context.callbacks(:before_save).should be_empty
+      
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_transform, :before_save, some_object)
+      result.object_id.should == some_object.object_id
     end
     
     it 'should handle filter callbacks' do
-      pending
+      @context.register_callback(:should_save?) {|obj| obj[:foo] = 'bar'; nil}
+      @context.register_callback(:should_save?) {|obj| obj[:alpha] = 'beta'; obj}
+      @context.register_callback(:should_remove?) {|obj| obj[:p] = 'q'; :done}
+      
+      # Make sure it cancels properly.
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_filter?, :should_save?, some_object)
+      result.should be_nil
+      some_object.should == {:foo => 'bar', :value => 12345}
+      
+      # Make sure it still runs properly, even if the default is false.
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_filter?, :should_save?, some_object, false)
+      result.should be_nil
+      some_object.should == {:foo => 'bar', :value => 12345}
+      
+      # Make sure it falls off the end correctly.
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_filter?, :should_remove?, some_object)
+      result.should == :done
+      some_object.should == {:foo => 'untouched', :value => 12345, :p => 'q'}
+    end
+    
+    it 'should handle no filter callbacks' do
+      @context.callbacks(:save_should?).should be_empty
+       
+       # Make sure it defaults to true when there are no callbacks.
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_filter?, :should_save?, some_object)
+      result.should == true
+      some_object.should == {:foo => 'untouched', :value => 12345}
+      
+      # Make sure it uses the passed default when there are no callbacks.
+      some_object = {:foo => 'untouched', :value => 12345}
+      result = @context.send(:callback_filter?, :should_save?, some_object, :some_default)
+      result.should == :some_default
+      some_object.should == {:foo => 'untouched', :value => 12345}
     end
     
   end
