@@ -12,11 +12,15 @@ module Poro
       end
       
       def fetch(id)
-        return convert_to_plain_object( data_store[clean_id(id)] )
+        obj = convert_to_plain_object( data_store[clean_id(id)] )
+        callback_event(:after_fetch, obj)
+        return obj
       end
       
       # Save the object in the underlying hash, using the object id as the key.
       def save(obj)
+        callback_event(:before_save, obj)
+        
         pk_id = self.primary_key_value(obj)
         if(pk_id.nil?)
           pk_id = obj.object_id
@@ -24,25 +28,37 @@ module Poro
         end
         
         data_store[pk_id] = convert_to_data(obj)
-        return self
+        
+        callback_event(:after_save, obj)
+        return obj
       end
       
       # Remove the object from the underlying hash.
       def remove(obj)
+        callback_event(:before_remove, obj)
+        
         pk_id = self.primary_key_value(obj)
         if( pk_id != nil )
           data_store.delete(pk_id)
           self.set_primary_key_value(obj, nil)
         end
-        return self
+        
+        callback_event(:after_remove, obj)
+        return obj
       end
       
       def convert_to_plain_object(data)
-        return data
+        transformed_data = callback_transform(:before_convert_to_plain_object, data)
+        obj = transformed_data
+        callback_event(:after_convert_to_plain_object, obj)
+        return obj
       end
       
       def convert_to_data(obj)
-        return obj
+        transformed_obj = callback_transform(:before_convert_to_data, obj)
+        data = transformed_obj
+        callback_event(:after_convert_to_data, data)
+        return data
       end
       
       private

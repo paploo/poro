@@ -111,14 +111,16 @@ module Poro
     # Fetches the object from the store with the given id, or returns nil
     # if there are none matching.
     def fetch(id)
-      return convert_to_plain_object( clean_id(nil) )
+      obj = convert_to_plain_object( clean_id(nil) )
+      callback_event(:after_fetch, obj)
+      return obj
     end
     
     # Saves the given object to the persistent store using this context.
     #
     # Subclasses do not need to call super, but should follow the given rules:
     #
-    # Returns self so that calls may be daisy chained.
+    # Returns the saved object.
     #
     # If the object has never been saved, it should be inserted and given
     # an id.  If the object has been added before, the id is used to update
@@ -126,7 +128,9 @@ module Poro
     #
     # Raises an Error if save fails.
     def save(obj)
+      callback_event(:before_save, obj)
       obj.id = obj.object_id if obj.respond_to?(:id) && obj.id.nil? && obj.respond_to?(:id=)
+      callback_event(:after_save, obj)
       return obj
     end
     
@@ -134,13 +138,15 @@ module Poro
     #
     # Subclasses do not need to call super, but should follow the given rules:
     #
-    # Returns self so that calls may be daisy chained.
+    # Returns the removed object.
     #
     # If the object is successfully removed, the id is set to nil.
     #
     # Raises an Error is the remove fails.
     def remove(obj)
+      callback_event(:before_remove, obj)
       obj.id = nil if obj.respond_to?(:id=)
+      callback_event(:after_remove, obj)
       return obj
     end
     
@@ -157,7 +163,10 @@ module Poro
     # Any root object returned from a "find" in the data store needs to be
     # able to be converted
     def convert_to_plain_object(data, state_info={})
-      return data
+      transformed_data = callback_transform(:before_convert_to_plain_object, data)
+      obj = transformed_data
+      callback_event(:after_convert_to_plain_object, obj)
+      return obj
     end
     
     # Convert a plain ol' ruby object into the data store data format this
@@ -173,7 +182,10 @@ module Poro
     # Any root object returned from a "find" in the data store needs to be
     # able to be converted
     def convert_to_data(obj, state_info={})
-      return obj
+      transformed_obj = callback_transform(:before_convert_to_data, obj)
+      data = transformed_obj
+      callback_event(:after_convert_to_data, data)
+      return data
     end
     
     private 
@@ -459,6 +471,130 @@ end
 
 module Poro
   class Context
+    # A mixin to support callbacks.  There are three kinds of callbacks:
+    # [Events] Events are callbacks that are passed a handle to the object when
+    #          a particular kind of event has occured.  These may destructively
+    #          edit objects.
+    # [Transform] Transforms are callbacks where each handler is passed the
+    #             result of the previous transform, and may return any value.
+    #             The issuing object then uses the final value in some way.
+    # [Filters] Calls each callback in sequence, pasing in the issuing object.
+    #           Terminates execution on the first callback that is "false" (as
+    #           determined by an if statement), or when there are no callbacks
+    #           left. Gives the issuing object the result of the last block.
+    #
+    # Contexts issue the following event callbacks:
+    # [:before_save] Called before save; passes the object that is going to be saved.
+    # [:after_save] Called after save; passes the object that was saved.
+    # [:before_remove] Called before removing an object from persistent storage; passes the object that will be removed.
+    # [:after_remove] Called after removing an object from persistent storage; passes the object that was removed.
+    # [:after_fech] Called after an object is fetched from the persistent store; passes the object that was fetched.
+    # [:after_convert_to_plain_object] Called after an object is converted to a plain object from the persistent store but before it is used; passes the plain object.
+    # [:after_convert_to_data] Called after an object is converted to the persistent store's data structure but before it is used; passes the data store's data structure.
+    #
+    # Contexts issue the following transform callbacks:
+    #
+    # [:before_convert_to_plain_object] Called just before a context converts
+    #                                   persistent store data to a plain ruby object;
+    #                                   is passed the persistent store data object;
+    #                                   the result is what is converted.
+    #                                   
+    #                                   In most cases it is better to use the
+    #                                   +after_convert_to_plain_object+ callback event.
+    # [:before_convert_to_data] Called just before a context converts
+    #                           a plain ruby object to persistent store data;
+    #                           is passed the plain ruby object;
+    #                           the result is what is converted.
+    #                           
+    #                           In most cases it is better to use the
+    #                           +before_convert_to_plain_object+ callback event.
+    module CallbackMethods
+      
+      # Return the raw array of callbacks.  This can be manipulated if more
+      # straightforward methods don't do the trick, but usually this is
+      # a consequence of trying to solve the problem wrong.
+      #
+      # While usually a kind of Proc, callbacks may be any object that responds
+      # to call.
+      def callbacks(event)
+        @event_callbacks ||= {}
+        key = event.to_sym
+        @event_callbacks[key] ||= []
+        return @event_callbacks[key]
+      end
+      
+      # Register a callback for a given event.
+      def register_callback(event, &block)
+        callbacks(event) << block
+      end
+      
+      # Clear all callbacks for a given event.
+      #
+      # This can be dangerous because
+      def clear_callbacks(event)
+        callbacks(event).clear
+      end
+      
+      private
+      
+      # Fires the callbacks for the given event; returns the object supplied
+      # for calling.
+      #
+      # * Each registered callback is given the object issued with the call.
+      # * Depending on your uses, the callback may be destructive of the passed object.
+      # * The callback returns are ignored.
+      #
+      # Registration of no callbacks results in no callbacks being called.
+      def callback_event(event, obj)
+        callbacks(event).each {|callback| callback.call(obj)}
+        return obj
+      end
+      
+      # Transforms an object through a callback chain; returns the transformed
+      # object.
+      #
+      # * Each registered callback is given the result of the previous callback.
+      # * Callbacks may return the original object (modified or unmodified), a
+      #   copy of the original object (modified or unmodified), or an entirely
+      #   new object, depending on how the result is used.
+      # * The callback return is passed into the next callback, with the last
+      #   return being called to the initial caller.
+      #
+      # Registration of no callbacks results in the return of the original object.
+      def callback_transform(event, initial_obj)
+        return callbacks(event).inject(initial_obj) {|obj, callback| callback.call(obj)}
+      end
+      
+      # Executes callbacks until the last true-valued filter; returns the last
+      # true valued object.
+      #
+      # * Each registered callback is given the original object, making this
+      #   behave more like an event than a transform.
+      # * Filters are expected to be non-destructive, as they are used to
+      #   determine if an action should take place, rather than to take an
+      #   action.
+      # * If the return of a callback is false-values (as determined by an +if+
+      #   expression), then the filter chain is halted and the value is returned;
+      #   otherwise, the value returned from the last callback is returned.
+      #
+      # Registration of no callbacks results in the return of the +default_value+
+      # argument, which--if not provided--is set to true.
+      def callback_filter?(event, obj, default_result=true)
+        result = default_result
+        return callbacks(event).each do |callback|
+          result = hook.call(obj)
+          break unless result
+        end
+        return result
+      end
+      
+    end
+  end
+end
+
+module Poro
+  class Context
     include FindMethods
+    include CallbackMethods
   end
 end

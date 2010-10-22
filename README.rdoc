@@ -160,7 +160,8 @@ mailto:jeff@paploo.net
 
 = Version History
 
-[0.1.3 - 2010-Oct-xx] Bug Fixes.
+[0.1.3 - 2010-Oct-xx] Callbacks and MongoContext Bug Fixes.
+                      * Added callbacks for common events.
                       * MongoContext: You can actually remove records now.
                       * MongoContext: Bignum encodes instead of throwing errors.
                       * MongoContext: Made recognition of true/false/nil class

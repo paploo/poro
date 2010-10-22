@@ -91,29 +91,44 @@ module Poro
       
       def fetch(id)
         data = data_store.find_one( clean_id(id) )
-        return convert_to_plain_object(data)
+        obj convert_to_plain_object(data)
+        callback_event(:before_fetch, obj)
+        return obj
       end
       
       def save(obj)
+        callback_event(:before_save, obj)
         data = convert_to_data(obj)
         data_store.save(data)
         set_primary_key_value(obj, (data['_id'] || data[:_id])) # The pk generator uses a symbol, while everything else uses a string!
+        callback_event(:after_save, obj)
         return obj
       end
       
       def remove(obj)
-        return data_store.remove( {'_id' => primary_key_value(obj)} )
+        callback_event(:before_remove, obj)
+        data_store.remove( {'_id' => primary_key_value(obj)} )
+        callback_event(:after_remove, obj)
+        return obj
       end
       
       def convert_to_plain_object(data, state_info={})
+        transformed_data = callback_transform(:before_convert_to_plain_object, data)
+        
         # If it is a root record, and it has no class name, assume this context's class name.
-        data['_class_name'] = self.klass if( data && data.kind_of?(Hash) && !state_info[:embedded] )
-        obj = route_decode(data, state_info)
+        transformed_data['_class_name'] = self.klass if( transformed_data && transformed_data.kind_of?(Hash) && !state_info[:embedded] )
+        obj = route_decode(transformed_data, state_info)
+        
+        callback_event(:after_convert_to_plain_object, obj)
         return obj
       end
       
       def convert_to_data(obj, state_info={})
-        data = route_encode(obj, state_info)
+        transformed_obj = callback_transform(:before_convert_to_data, obj)
+        
+        data = route_encode(transformed_obj, state_info)
+        
+        callback_event(:after_convert_to_data, data)
         return data
       end
       
