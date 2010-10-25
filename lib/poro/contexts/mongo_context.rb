@@ -91,8 +91,8 @@ module Poro
       
       def fetch(id)
         data = data_store.find_one( clean_id(id) )
-        obj convert_to_plain_object(data)
-        callback_event(:before_fetch, obj)
+        obj = convert_to_plain_object(data)
+        callback_event(:after_fetch, obj)
         return obj
       end
       
