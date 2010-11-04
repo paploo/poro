@@ -88,7 +88,7 @@ module Poro
         # If a search condition is the primary key, we can significantly limit our work.
         values = nil
         data = nil
-        if( opts[:conditions].has_key?( self.primary_key ) )
+        if( opts[:conditions] && opts[:conditions].has_key?( self.primary_key ) )
           pk_value = opts[:conditions].delete(self.primary_key)
           obj = self.fetch( pk_value )
           values = obj.nil? ? [] : [obj]
@@ -152,9 +152,9 @@ module Poro
       
       # Filters out records that, for each of the conditions in the hash,
       # have a value at the keypath and the value at that keypath matches the
-      # desired value.
+      # desired value, and returns them.
       def filter(data, conditions_opt)
-        conditions_opt.inject(data) do |matches,(key, value)|
+        (conditions_opt||{}).inject(data) do |matches,(key, value)|
           keypath = key.to_s.split('.')
           matches.select do |record|
             value_info = value_for_key(record, keypath)

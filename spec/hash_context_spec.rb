@@ -227,6 +227,12 @@ describe "HashContext" do
       @context.send(:value_for_key, record, :id)[:value].should == 3
     end
     
+    it 'should find first without opts' do
+      record = @context.find(:first)
+      record.should_not be_nil
+      @context.send(:value_for_key, record, :id)[:value].should == 1
+    end
+    
   end
   
 end
