@@ -160,6 +160,7 @@ mailto:jeff@paploo.net
 
 = Version History
 
+[0.1.5 - 2010-Nov-??] Bug Fixes.
 [0.1.4 - 2010-Nov-08] Bug Fixes.
                       * MongoContext: Fixed broken fetch method.
                       * HashContext: Fixed crash on find without a conditions hash.
