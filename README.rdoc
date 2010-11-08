@@ -160,9 +160,10 @@ mailto:jeff@paploo.net
 
 = Version History
 
-[0.1.4 - 2010-Nov-xx] Bug Fixes.
+[0.1.4 - 2010-Nov-08] Bug Fixes.
                       * MongoContext: Fixed broken fetch method.
                       * HashContext: Fixed crash on find without a conditions hash.
+                      * Minor gemspec file change for compatibility with bundler.
 [0.1.3 - 2010-Oct-21] Callbacks and MongoContext Bug Fixes.
                       * Added callbacks for common events.
                       * MongoContext: You can actually remove records now.
