@@ -78,7 +78,7 @@ module Poro
     attr_reader :data_store
     
     # Sets the raw data store backing this context.  Useful during initial
-    # configuration and advanced usage, but can be dangerous.
+    # configuration and advanced usage, but can be dangerous to monkey with.
     attr_writer :data_store
     
     # Returns the a symbol for the method that returns the Context assigned

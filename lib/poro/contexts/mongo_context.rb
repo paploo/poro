@@ -29,8 +29,7 @@ module Poro
     # takes priority.
     class MongoContext < Context
       # A map of all the collection names registered for this kind of context.
-      # This is to facilitate DBRef dereferencing, even when your class doesn't
-      # match the 
+      # This is to facilitate DBRef dereferencing.
       @@collection_map = {}
       
       # Takes the class for the context, and optionally the collection object
@@ -57,7 +56,7 @@ module Poro
       
       # Set the data store to the given collection.
       def data_store=(collection)
-        @@collection_map.delete(self.data_store && data.store.name) # Clean-up the old record in case we change names.
+        @@collection_map.delete(self.data_store && self.data_store.name) # Clean-up the old record in case we change names.
         @@collection_map[collection.name] = self unless collection.nil? # Create the new record.
         super(collection)
       end
