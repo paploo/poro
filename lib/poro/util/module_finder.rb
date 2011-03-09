@@ -48,7 +48,7 @@ module Poro
         mod = recursive_resolve.call(relative_root, mod_names)
         
         # Now, if we are strict, verify it is of the type we are looking for.
-        if (relative_root!=Module || relative_root!=Object) && !(mod.name.include?(relative_root.name))
+        if !(relative_root==Module || relative_root==Object) && !(mod.name.include?(relative_root.name))
           base_message = "Could not find a module or class #{mod.name.inspect} inside of #{relative_root.name.inspect}"
           if( strict )
             raise NameError, base_message

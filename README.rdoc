@@ -160,6 +160,8 @@ mailto:jeff@paploo.net
 
 = Version History
 
+[0.1.6 - 2011-Mar-09] Bug Fixes.
+                      * ModuleFinder: Fixed a bug where an inappropriate warning would be thrown.
 [0.1.5 - 2011-Feb-15] Bug Fixes.
                       * MongoContext: Fixed a typo in the data_store set accessor.
 [0.1.4 - 2010-Nov-08] Bug Fixes.
