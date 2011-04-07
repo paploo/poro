@@ -160,6 +160,9 @@ mailto:jeff@paploo.net
 
 = Version History
 
+[0.1.7 - 2011-Apr-06] Bug Fixes.
+                      * MongoContext: Fixed it to send :after_fetch events after a find.
+                      * MongoContext: Dereferencing a DBRef.
 [0.1.6 - 2011-Mar-09] Bug Fixes.
                       * ModuleFinder: Fixed a bug where an inappropriate warning would be thrown.
 [0.1.5 - 2011-Feb-15] Bug Fixes.

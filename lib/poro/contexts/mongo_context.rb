@@ -437,7 +437,7 @@ module Poro
           value = context.data_store.db.dereference(dbref)
           return context.convert_to_plain_object(value, :embedded => false) # We want it to work like a standalone object, so don't treat as embedded.
         elsif self.data_store.db.collection_names.include?(dbref.namespace.to_s)
-          value = context.data_store.db.dereference(dbref)
+          value = self.data_store.db.dereference(dbref)
           value['_namespace'] = dbref.namespace.to_s
           return value
         else
@@ -539,11 +539,15 @@ module Poro
         end
         
         def data_store_find_all(*args, &block)
-          return data_store.find(*args, &block).to_a.map {|doc| self.convert_to_plain_object(doc)}
+          objects = data_store.find(*args, &block).to_a.map {|doc| self.convert_to_plain_object(doc)}
+          objects.each {|obj| callback_event(:after_fetch, obj)}
+          return objects
         end
         
         def data_store_find_first(*args, &block)
-          return self.convert_to_plain_object( data_store.find_one(*args, &block) )
+          obj = self.convert_to_plain_object( data_store.find_one(*args, &block) )
+          callback_event(:after_fetch, obj)
+          return obj
         end
         
         # Takes find opts, runs them through <tt>clean_find_opts</tt>, and then
