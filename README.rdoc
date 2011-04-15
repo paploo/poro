@@ -160,6 +160,10 @@ mailto:jeff@paploo.net
 
 = Version History
 
+[0.1.8 - 2011-Apr-15] Bug Fixes.
+                      * MongoContext: context.fetch(nil) returns nil.  Turns out
+                        Mongo's coll.find_one(nil) returned first record, and so
+                        that is what we were doing but didn't actually want to do.
 [0.1.7 - 2011-Apr-06] Bug Fixes.
                       * MongoContext: Fixed it to send :after_fetch events after a find.
                       * MongoContext: Dereferencing a DBRef.

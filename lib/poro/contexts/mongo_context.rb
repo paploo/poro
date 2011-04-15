@@ -89,6 +89,7 @@ module Poro
       attr_writer :attempt_id_conversion
       
       def fetch(id)
+        return nil if id.nil? #find_one(nil) returns the first object!  We don't want this.
         data = data_store.find_one( clean_id(id) )
         obj = convert_to_plain_object(data)
         callback_event(:after_fetch, obj)
